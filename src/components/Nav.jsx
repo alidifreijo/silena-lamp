@@ -24,10 +24,24 @@ const LINKS = [
     ["shop", "Shop"],
 ]
 
+function toTop() {
+    if (window.__lenis) window.__lenis.scrollTo(0, { duration: 1.8 })
+    else window.scrollTo({ top: 0, behavior: "smooth" })
+}
+
 export default function Nav() {
     return (
         <nav className="nav" aria-label="Silena">
-            <span className="nav-spacer" />
+            <div className="nav-home">
+                <button type="button" className="nav-btn" onClick={toTop} aria-label="Back to the top" title="Silena">
+                    {/* the lamp: a disc of glass with its hole, and the cable */}
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" aria-hidden="true">
+                        <circle cx="12" cy="10.5" r="7.5" />
+                        <circle cx="12" cy="10.5" r="2" />
+                        <path d="M12 18v4" />
+                    </svg>
+                </button>
+            </div>
             <div className="nav-pill">
                 {LINKS.map(([k, l]) => (
                     <a

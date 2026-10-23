@@ -41,7 +41,7 @@ const LAYOUT =
     ".slr .tools{display:none}" +
     /* entry: touch points, window light and small animations wait until the room is built */
     ".slr .spots .spot{transition:opacity .6s ease,transform .6s cubic-bezier(.34,1.56,.64,1),background .4s,border-color .4s,width .3s,height .3s}" +
-    ".slr.asm .spots .spot{opacity:0;transform:translate(-50%,-50%) rotate(var(--rot,0deg)) scale(.6);pointer-events:none}" +
+    ".slr.asm:not(.spots-on) .spots .spot{opacity:0;transform:translate(-50%,-50%) rotate(var(--rot,0deg)) scale(.6);pointer-events:none}" +
     ".slr #slr-anim,.slr #slr-shaft,.slr #slr-patch{transition:opacity .8s ease}" +
     ".slr.asm #slr-anim,.slr.asm #slr-shaft,.slr.asm #slr-patch{opacity:0}" +
     /* pinned while it builds (desktop) */
@@ -176,6 +176,8 @@ function assemble(host, root, pinVh, opts) {
     // only pieces that are moving are touched each frame; finished ones drop their mask
     const guides = [...svg.querySelectorAll(".slr-guide")]
     function apply(p) {
+        // the touch points show up while the last pieces are still landing
+        root.classList.toggle("spots-on", p > 0.62)
         // 0. the sketch guides first
         guides.forEach((g, i) => {
             const t = ease(seg(p, i * 0.006, 0.12 + i * 0.006))
@@ -236,6 +238,11 @@ function assemble(host, root, pinVh, opts) {
     root.classList.add("asm")
     setPaint(false)
     apply(0)
+    // a tap on a touch point while the room is still landing completes it at once
+    const early = (e) => {
+        if (!finished && e.target.closest && e.target.closest(".spot,.hot")) finish()
+    }
+    root.addEventListener("pointerdown", early, true)
 
     // done = what is drawn; goal = where the scroll is (+ a little momentum). The drawing glides
     // towards the goal, so it keeps moving for a moment after the scroll stops.
@@ -339,6 +346,7 @@ function assemble(host, root, pinVh, opts) {
     kick()
     return () => {
         unhold()
+        root.removeEventListener("pointerdown", early, true)
         cancelAnimationFrame(raf)
         window.removeEventListener("scroll", kick)
         window.removeEventListener("resize", kick)

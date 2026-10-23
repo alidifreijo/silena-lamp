@@ -29,8 +29,15 @@ export default function App() {
             raf = requestAnimationFrame(tick)
         }
         raf = requestAnimationFrame(tick)
-        const lock = () => lenis.stop()
-        const unlock = () => lenis.start()
+        // pause: drop any glide still pending, so nothing jumps when it lets go
+        const lock = () => {
+            lenis.scrollTo(window.scrollY, { immediate: true, force: true })
+            lenis.stop()
+        }
+        const unlock = () => {
+            lenis.scrollTo(window.scrollY, { immediate: true, force: true })
+            lenis.start()
+        }
         window.addEventListener("silena-scroll-lock", lock)
         window.addEventListener("silena-scroll-unlock", unlock)
         return () => {

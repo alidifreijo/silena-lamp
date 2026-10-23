@@ -19,6 +19,7 @@ html.silena-theming body,
 html.silena-theming .hero,
 html.silena-theming .process,
 html.silena-theming .nav-pill,
+html.silena-theming .nav-btn,
 html.silena-theming .hero-text,
 html.silena-theming .hero-center,
 html.silena-theming .section-eyebrow {
@@ -42,7 +43,6 @@ body {
 /* Lenis smooth scrolling */
 html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth { scroll-behavior: auto !important; }
-.lenis.lenis-stopped { overflow: hidden; }
 
 /* ---------- nav ---------- */
 .nav {
@@ -52,7 +52,15 @@ html.lenis, html.lenis body { height: auto; }
     pointer-events: none;
 }
 .nav > * { pointer-events: auto; }
-.nav-spacer { flex: 1 1 0; pointer-events: none; }
+.nav-home { flex: 1 1 0; display: flex; align-items: center; }
+.nav-btn {
+    width: 54px; height: 54px; padding: 0; border: 0; border-radius: 50%; flex: none;
+    display: grid; place-items: center; cursor: pointer; color: var(--ink); background: var(--nav-bg);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+}
+.nav-btn svg { transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.nav-btn:hover svg { transform: scale(1.1); }
+.nav-btn:focus-visible { outline: 2px solid #f0892a; outline-offset: 3px; }
 .nav-pill {
     display: flex; align-items: center; gap: 20px; height: 54px; padding: 0 20px;
     border-radius: 51px; background: var(--nav-bg);
@@ -71,12 +79,14 @@ html.lenis, html.lenis body { height: auto; }
 .hero-photo { position: absolute; inset: 0; overflow: hidden; }
 .hero-photo img {
     position: absolute; inset: 0; width: 100%; height: 100%; display: block;
-    object-fit: cover; object-position: center bottom;
+    object-fit: cover; object-position: 50% 30%;
     transition: opacity 0.9s var(--ease);
 }
-.hero-center {
-    position: absolute; inset: 0;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 36px;
+/* SILENA sits exactly in the middle of the screen; its line hangs below it */
+.hero-center { position: absolute; inset: 0; display: grid; place-items: center; }
+.hero-center .label {
+    position: absolute; left: 0; right: 0; text-align: center;
+    top: calc(50% + var(--silena-title-z, 1) * 131px + 32px);
 }
 .silena-word {
     display: flex; align-items: center; gap: 34px; margin: 0; height: 262px;
@@ -96,21 +106,28 @@ html.lenis, html.lenis body { height: auto; }
     font-weight: 400; font-size: 12px; line-height: 14px; letter-spacing: 0.14em; text-transform: uppercase;
     transition: color 0.9s var(--ease);
 }
+/* section eyebrows sit in the nav's row, just right of the home button */
+@media (min-width: 641px) {
+    .section-eyebrow { left: 112px; }
+    .slr-eb span { left: 112px !important; }
+    .slx-eb { left: 112px !important; }
+}
 /* desktop: once the room is built it stays pinned a little while, to be played with */
 @media (min-width: 861px) { .slr-host > .slr-spacer { height: calc(270vh + 50vh) !important; } }
 @media (max-width: 860px) { .slr .slr-wrap { grid-template-columns: minmax(0, 1fr) !important; } }
 
 /* ---------- phones ---------- */
 @media (max-width: 640px) {
-    .nav { padding: 12px; gap: 8px; }
-    .nav-spacer { display: none; }
-    .nav-pill { gap: 14px; padding: 0 16px; }
-    .nav-pill a { font-size: 13px; }
+    .nav { padding: 12px; gap: 6px; }
+    .nav-home { flex: 0 0 auto; }
+    .nav-btn, .silena-bag-btn { width: 46px !important; height: 46px !important; }
+    .nav-pill { gap: 10px; padding: 0 12px; height: 46px; }
+    .nav-pill a { font-size: 12px; }
     .nav-theme { flex: 0 0 auto; gap: 6px; }
-    .silena-switch { padding: 0 11px !important; gap: 0 !important; }
+    .silena-switch { height: 46px !important; padding: 0 9px !important; gap: 0 !important; }
     .silena-switch-lbl { display: none; }
 
-    .silena-word { zoom: var(--silena-title-z, 0.3); }
+    .silena-word { zoom: var(--silena-title-z, 0.26); }
     .hero-photo img { object-position: 30% 100%; }
     .hero-text { top: 92px; width: calc(50% - 24px); }
     .hero-credit { left: 16px; }

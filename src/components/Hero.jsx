@@ -4,10 +4,11 @@ import { useLayoutEffect } from "react"
 import SilenaThemeImage from "./SilenaThemeImage.jsx"
 import Letters, { WORD_WIDTH } from "./Letters.jsx"
 
-// SILENA as wide as the screen allows (minus the side margins), without getting too tall
+// SILENA at 80% of the width the screen allows (minus the side margins), so the photo shows
+// around it, and never too tall
 function sizeTitle() {
     const w = window.innerWidth, h = window.innerHeight, pad = w <= 640 ? 16 : 42
-    const z = Math.max(0.2, Math.min((w - 2 * pad) / WORD_WIDTH, (h * 0.52) / 262))
+    const z = Math.max(0.2, 0.8 * Math.min((w - 2 * pad) / WORD_WIDTH, (h * 0.52) / 262))
     document.documentElement.style.setProperty("--silena-title-z", z.toFixed(4))
 }
 

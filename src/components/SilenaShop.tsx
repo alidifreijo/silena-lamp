@@ -83,7 +83,10 @@ export default function SilenaShop(props) {
         perk2 = "30 days to change your mind",
         perk3 = "2-year guarantee, 5 years on the LED",
     } = props
-    const c = PAL[useSilenaMode()]
+    const mode = useSilenaMode()
+    const c = PAL[mode]
+    const inkRef = useRef(c.ink)
+    inkRef.current = c.ink
     const [fin, setFin] = useState(FINISHES[0])
     const [qty, setQty] = useState(1)
     const [mount, setMount] = useState("wall")
@@ -98,12 +101,38 @@ export default function SilenaShop(props) {
         loadThree()
             .then((THREE) => {
                 if (!alive || !canvas.current) return
-                lamp.current = makeRealLamp(THREE, canvas.current, { mount })
+                // it arrives from Light Rituals as a wire drawing and builds itself into the lamp
+                const fromRituals = !!document.querySelector(".slx")
+                lamp.current = makeRealLamp(THREE, canvas.current, { mount, build: fromRituals ? 0 : 1, ink: inkRef.current })
                 lamp.current.colors(fin)
             })
             .catch(() => {})
+        let built = false
+        const build = (on) => {
+            if (on === built || !lamp.current) return
+            built = on
+            lamp.current.build(on ? 1 : 0, on ? 2800 : 0, inkRef.current)
+        }
+        // Light Rituals hands its lamp over here (and takes it back if you scroll up again)
+        const onLanded = (e) => build(!!e.detail)
+        window.addEventListener("silena-lamp-landed", onLanded)
+        // arriving some other way (no hand-over on screen): build it as soon as the stage is in view
+        const io = new IntersectionObserver(
+            ([en]) => {
+                if (!en.isIntersecting || built) return
+                setTimeout(() => {
+                    const pin = document.querySelector(".slx-pin")
+                    const covered = pin && parseFloat(getComputedStyle(pin).opacity) > 0.1 && getComputedStyle(pin).visibility !== "hidden" && pin.getBoundingClientRect().bottom > 0
+                    if (!covered) build(true)
+                }, 400)
+            },
+            { threshold: 0.5 }
+        )
+        if (canvas.current) io.observe(canvas.current)
         return () => {
             alive = false
+            io.disconnect()
+            window.removeEventListener("silena-lamp-landed", onLanded)
             lamp.current?.dispose()
             lamp.current = null
         }

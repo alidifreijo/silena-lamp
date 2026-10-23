@@ -57,7 +57,11 @@ function mountRituals(host, o) {
     const PG_DAY = "#D8CAB6" // the page's day colour
     const ROOM_DAY = { ...ROOM_NIGHT, L: "#E2D5C3", R: "#D9CBB7", F: "#C7B69C", out: PG_DAY, sky: "#DCE4EA", ink: "#2E2216", dark: false }
     const ROOM = o.mode === "light" ? ROOM_DAY : ROOM_NIGHT
-    const ORDER = o.mode === "light" ? ["morning", "afternoon", "evening", "night"] : ["night", "morning", "afternoon", "evening"]
+    // through the day, saving the night (and its colour) for last; if a persona was chosen in the
+    // room, the day starts at that persona's light and carries on round the clock
+    const DAY = ["morning", "afternoon", "evening", "night"]
+    const s0 = Math.max(0, DAY.indexOf(o.start))
+    const ORDER = DAY.slice(s0).concat(DAY.slice(0, s0))
     const n = ORDER.length
 
     const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c])
@@ -419,7 +423,8 @@ gl_FragColor=vec4(mix(off,glow,uOn),uAlpha);}`,
         // 1. off the wall to the middle, turning to a three-quarter view; 2. it pauses there as a wire
         // drawing with its dimensions; 3. it fills in again, turns to face you and lands on the shop
         const a1 = ease(cl((out - 0.04) / 0.26)), a2 = ease(cl((out - 0.64) / 0.24))
-        const wv = Math.sin(Math.PI * cl((out - 0.24) / 0.42))
+        // the wire drawing appears and stays: the lamp lands in the shop still half built
+        const wv = ease(cl((out - 0.24) / 0.22))
         const l3 = lamp3()
         const P = (x, y, z) => proj(c, x, y, z)
         const start = P(0.4 * K, LY, LZ), rs = K * c.s * 1.2247, tg = shopTarget(out)
@@ -641,7 +646,7 @@ gl_FragColor=vec4(mix(off,glow,uOn),uAlpha);}`,
     }
 
     /* ---------- scroll → state ---------- */
-    let prog = 0, active = false, shown = -2
+    let prog = 0, active = false, shown = -2, wasLanded = false
     function read() {
         const r = sec.getBoundingClientRect(), len = r.height - H
         active = r.top <= 0.5
@@ -712,6 +717,12 @@ gl_FragColor=vec4(mix(off,glow,uOn),uAlpha);}`,
         }
         // the very end: this screen fades away over the shop, which is already in place below
         pin.style.opacity = String(1 - ease(cl((out - 0.9) / 0.1)))
+        // tell the shop when the lamp has landed, so its own 3D lamp carries on building itself
+        const landed = !o.still && out > 0.9
+        if (landed !== wasLanded) {
+            wasLanded = landed
+            window.dispatchEvent(new CustomEvent("silena-lamp-landed", { detail: landed }))
+        }
         const showI = o.still ? 0 : intro < 0.85 || out > 0.06 ? -1 : cur
         if (showI !== shown) {
             shown = showI
@@ -805,7 +816,22 @@ export default function SilenaLightRituals(props) {
     const isCanvas = RenderTarget.current() === RenderTarget.canvas
     const mode = useSilenaMode()
     const ref = useRef<HTMLDivElement>(null)
-    const key = [eyebrow, morningLine, morningDetail, morningLabel, afternoonLine, afternoonDetail, afternoonLabel, eveningLine, eveningDetail, eveningLabel, nightLine, nightDetail, nightLabel, vhPerState, mode].join("|")
+    // the persona last chosen in the room picks the light the day starts with
+    const [start, setStart] = useState("morning")
+    useEffect(() => {
+        const MOOD = { reader: "morning", storyteller: "afternoon", host: "evening", dreamer: "night" }
+        const onPersona = (e) => {
+            const m = MOOD[e.detail]
+            if (!m) return
+            // only while this section is still ahead (it rebuilds itself)
+            const sec = ref.current && ref.current.querySelector(".slx")
+            if (sec && sec.getBoundingClientRect().top <= 1) return
+            startTransition(() => setStart(m))
+        }
+        window.addEventListener("silena-persona", onPersona)
+        return () => window.removeEventListener("silena-persona", onPersona)
+    }, [])
+    const key = [eyebrow, morningLine, morningDetail, morningLabel, afternoonLine, afternoonDetail, afternoonLabel, eveningLine, eveningDetail, eveningLabel, nightLine, nightDetail, nightLabel, vhPerState, mode, start].join("|")
 
     useEffect(() => {
         const host = ref.current
@@ -817,6 +843,7 @@ export default function SilenaLightRituals(props) {
                 stop = mountRituals(host, {
                     THREE,
                     mode,
+                    start,
                     eyebrow,
                     vhPerState,
                     still: isCanvas,

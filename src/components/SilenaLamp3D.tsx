@@ -15,21 +15,41 @@ function buildLamp(THREE) {
     const geo = new THREE.LatheGeometry(pts, 180)
     geo.computeVertexNormals()
     geo.translate(0, -0.4, 0)
-    const U = { uTint: { value: new THREE.Color() }, uCore: { value: new THREE.Color() }, uRim: { value: new THREE.Color() }, uOn: { value: 1 } }
+    const U = { uTint: { value: new THREE.Color() }, uCore: { value: new THREE.Color() }, uRim: { value: new THREE.Color() }, uOn: { value: 1 }, uAlpha: { value: 1 } }
     const glass = new THREE.ShaderMaterial({
         uniforms: U,
         side: THREE.DoubleSide,
+        transparent: true,
         vertexShader: `varying vec3 vN;varying vec3 vV;varying vec3 vP;void main(){vec4 mv=modelViewMatrix*vec4(position,1.);vN=normalize(normalMatrix*normal);vV=normalize(-mv.xyz);vP=position;gl_Position=projectionMatrix*mv;}`,
-        fragmentShader: `uniform vec3 uTint;uniform vec3 uCore;uniform vec3 uRim;uniform float uOn;varying vec3 vN;varying vec3 vV;varying vec3 vP;
+        fragmentShader: `uniform vec3 uTint;uniform vec3 uCore;uniform vec3 uRim;uniform float uOn;uniform float uAlpha;varying vec3 vN;varying vec3 vV;varying vec3 vP;
 void main(){vec3 N=normalize(vN),V=normalize(vV);float ndv=max(dot(N,V),0.);float fr=1.-ndv;
 vec3 L1=normalize(vec3(-.5,.8,.6)),L2=normalize(vec3(.7,.2,.5));float d1=max(dot(N,L1),0.),d2=max(dot(N,L2),0.);
 vec3 off=uTint*(.42+.5*d1+.18*d2)+vec3(1.)*pow(max(dot(N,normalize(L1+V)),0.),12.)*.16;
 float thick=smoothstep(.0,.9,fr);vec3 glow=mix(uCore,uRim,smoothstep(.25,1.,fr));glow*=1.0-.25*thick;
 float r=length(vP.xz);glow*=mix(.78,1.,smoothstep(.17,.45,r))*mix(1.,.9,smoothstep(.6,1.,r));glow*=.9+.16*d1;
 vec3 on=glow+vec3(1.)*pow(max(dot(N,normalize(L1+V)),0.),14.)*.08;vec3 col=mix(off,on,uOn);
-float g=fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453);col+=(g-.5)*.025;gl_FragColor=vec4(col,1.);}`,
+float g=fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453);col+=(g-.5)*.025;gl_FragColor=vec4(col,uAlpha);}`,
     })
     const shade = new THREE.Mesh(geo, glass)
+    // the same shape as a wire drawing (profile lines and rings), for when the lamp is still "being built"
+    const wv = []
+    const prof = pts.filter((_, i) => i % 3 === 0).concat([pts[pts.length - 1]])
+    for (let m = 0; m < 20; m++) {
+        const a = (m / 20) * Math.PI * 2, ca = Math.cos(a), sa = Math.sin(a)
+        for (let i = 1; i < prof.length; i++) wv.push(prof[i - 1].x * ca, prof[i - 1].y - 0.4, prof[i - 1].x * sa, prof[i].x * ca, prof[i].y - 0.4, prof[i].x * sa)
+    }
+    pts.filter((_, i) => i % 7 === 0).forEach((p) => {
+        for (let k = 0; k < 64; k++) {
+            const a0 = (k / 64) * Math.PI * 2, a1 = ((k + 1) / 64) * Math.PI * 2
+            wv.push(p.x * Math.cos(a0), p.y - 0.4, p.x * Math.sin(a0), p.x * Math.cos(a1), p.y - 0.4, p.x * Math.sin(a1))
+        }
+    })
+    const wgeo = new THREE.BufferGeometry()
+    wgeo.setAttribute("position", new THREE.Float32BufferAttribute(wv, 3))
+    const wireM = new THREE.LineBasicMaterial({ color: 0xf4e9dc, transparent: true, opacity: 0, depthTest: false })
+    const wire = new THREE.LineSegments(wgeo, wireM)
+    wire.visible = false
+    wire.renderOrder = 2
     const base = new THREE.Mesh(
         new THREE.LatheGeometry([[.22, .035], [.6, .035], [.64, 0], [.62, -.035], [.22, -.035], [.22, .035]].map(([r, y]) => new THREE.Vector2(r, y)), 96),
         new THREE.MeshBasicMaterial({ color: 0xe8e4dd, side: THREE.DoubleSide })
@@ -45,7 +65,7 @@ float g=fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453);col+=(g
     })
     const cable = new THREE.Mesh(new THREE.TubeGeometry(cableCurve, 160, 0.022, 12, false), cableM)
     const lampG = new THREE.Group()
-    lampG.add(shade, base, baseShade, cable)
+    lampG.add(shade, base, baseShade, cable, wire)
     const tex = (stops) => {
         const c = document.createElement("canvas")
         c.width = c.height = 256
@@ -74,6 +94,13 @@ float g=fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453);col+=(g
     const col = (h) => new THREE.Color(h)
     return {
         rig, U, haloM, cable,
+        // 0 = a wire drawing over faint glass, 1 = the finished lamp
+        build(t, ink) {
+            U.uAlpha.value = 0.38 + 0.62 * t
+            wireM.opacity = 0.9 * (1 - t)
+            if (ink) wireM.color.copy(col(ink))
+            wire.visible = t < 0.995
+        },
         colors(f) {
             U.uTint.value.copy(col(f.tint))
             U.uCore.value.copy(col(f.core))
@@ -108,6 +135,9 @@ export function makeRealLamp(THREE, cv: HTMLCanvasElement, opts: any = {}) {
     const rig = L.rig
     let target = POSE[opts.mount || "wall"], cur = { ...target }, yaw = 0, yawT = 0, base0 = 0, amp = 1, vel = 0, tilt = 0, tiltT = 0
     let on = opts.on == null ? 1 : opts.on, onT = on, drag = null, raf = 0, visible = true, t0 = performance.now()
+    // build: how finished the lamp looks (see buildLamp().build), animated over time
+    let bld = opts.build == null ? 1 : opts.build, bA = bld, bB = bld, bT0 = 0, bDur = 1, ink = opts.ink
+    L.build(bld, ink)
     const Y = new THREE.Vector3(0, 1, 0), X = new THREE.Vector3(1, 0, 0)
     function draw() {
         rig.rotation.set(cur.x, 0, 0)
@@ -139,6 +169,11 @@ export function makeRealLamp(THREE, cv: HTMLCanvasElement, opts: any = {}) {
         yaw += (yawT - yaw) * (drag ? 0.25 : 0.06)
         tilt += (tiltT - tilt) * 0.12
         on += (onT - on) * (opts.onSpeed || 0.05)
+        if (bld !== bB) {
+            const k = Math.min(1, (t - bT0) / bDur), e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2
+            bld = k >= 1 ? bB : bA + (bB - bA) * e
+            L.build(bld, ink)
+        }
         draw()
         if (visible) raf = requestAnimationFrame(loop)
     }
@@ -185,6 +220,12 @@ export function makeRealLamp(THREE, cv: HTMLCanvasElement, opts: any = {}) {
         colors(f) { L.colors(f); draw() },
         mount(m) { target = POSE[m] || POSE.wall; base0 = Math.round(base0 / (2 * Math.PI)) * 2 * Math.PI; vel = 0; kick() },
         power(v) { onT = v; kick() },
+        // go from the wire drawing to the finished lamp (or back), over ms milliseconds
+        build(v, ms = 0, inkColor) {
+            if (inkColor) ink = inkColor
+            if (!ms) { bld = bA = bB = v; L.build(v, ink); draw(); return }
+            bA = bld; bB = v; bT0 = performance.now(); bDur = ms; kick()
+        },
         dispose() {
             cancelAnimationFrame(raf)
             io.disconnect()

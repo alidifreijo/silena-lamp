@@ -68,7 +68,7 @@ function Letter({ l, i }) {
             <g filter={`url(#${id}f)`} mask={`url(#${id}m)`}>
                 <use href={`#${id}p`} fill="black" />
             </g>
-            <use href={`#${id}p`} fill="rgb(255,255,255)" fillOpacity="0.25" />
+            <use href={`#${id}p`} fill="rgb(255,255,255)" fillOpacity="0.2" />
             <use className="silena-letter-glow" href={`#${id}p`} fill={`url(#${id}g)`} />
         </svg>
     )
