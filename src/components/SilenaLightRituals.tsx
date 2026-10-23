@@ -409,8 +409,9 @@ gl_FragColor=vec4(mix(off,glow,uOn),uAlpha);}`,
             let px = 2 * l3.HB * c.s * 1.2247, ctr = P(l3.T.y, l3.T.x, l3.T.z)
             // coming from where the lamp stood in the room: it glides to the wall and takes its size
             if (from) {
-                const e = ease(t), ps = from.s / (K / l3.HB)
-                ctr = [from.x + (ctr[0] - from.x) * e, from.y + (ctr[1] - from.y) * e]
+                // it lifts first, then glides across to the wall
+                const e = ease(t), ey = 1 - Math.pow(1 - t, 3), ps = from.s / (K / l3.HB)
+                ctr = [from.x + (ctr[0] - from.x) * e, from.y + (ctr[1] - from.y) * ey]
                 px = ps + (px - ps) * e
             }
             const img = l3.render(px * Math.min(DPR, 2), "#EEEAE3", mix(lamp, "#FFFFFF", 0.6), mix(lamp, "#FFFFFF", 0.15), on, 1 - dk * 0.45)
@@ -705,12 +706,15 @@ gl_FragColor=vec4(mix(off,glow,uOn),uAlpha);}`,
             const cs = clone ? cloneCam : camStart(), ce = camEnd()
             const c = { ox: cs.ox + (ce.ox - cs.ox) * intro, oy: cs.oy + (ce.oy - cs.oy) * intro, s: cs.s + (ce.s - cs.s) * intro }
             const k = cl((intro - 0.12) / 0.6), ext = 10 + 3 * intro
+            // the persona's lamp travels with the whole hand-over, starting as the furniture fades
+            const lampT = cl(p / (INTRO * 0.82))
             if (clone) {
                 // 1. the room as it was: furniture and text fade away; 2. it grows to fill the screen
                 roomBox.style.display = ""
                 fade.forEach((e) => (e.style.opacity = String(e._o * (1 - empty))))
-                // the room's lamp fades as the 3D lamp appears on top of it
-                const lk = roomLamp ? 1 - ease(cl(k * 3)) : 1 - empty
+                // the persona's lamp never stays behind on empty furniture: as the room empties the 3D
+                // lamp takes its place (a quick cross-fade) and rises to the wall
+                const lk = roomLamp ? 1 - cl(lampT / 0.12) : 1 - empty
                 fadeLamp.forEach((e) => (e.style.opacity = String(e._o * lk)))
                 const z = c.s / cs.s
                 clone.style.transform = `translate(${c.ox - cs.sx - (cs.ox - cs.sx) * z}px,${c.oy - cs.sy - (cs.oy - cs.sy) * z}px) scale(${z})`
@@ -725,14 +729,16 @@ gl_FragColor=vec4(mix(off,glow,uOn),uAlpha);}`,
                 ctx.globalAlpha = k
                 ctx.drawImage(live(first, c, ext), 0, 0, W, H)
                 ctx.globalAlpha = 1
-                let from = null
-                if (clone && roomLamp) {
-                    const r = roomLamp.getBoundingClientRect(), pr = pin.getBoundingClientRect()
-                    if (r.width > 2) from = { x: r.left - pr.left + r.width / 2, y: r.top - pr.top + r.height / 2, s: Math.max(r.width, r.height) }
-                }
-                drawLamp(ctx, c, first, first, 0, first.lampOn * Math.max(k, from ? 0.6 : 0), from ? Math.min(1, k * 3) : k, from, from ? cl((k - 0.15) / 0.85) : 1)
                 guides(ctx, c, mix(ROOM.ink, first.ink, k), 0.3 * k)
             } else if (!clone) guides(ctx, c, ROOM.ink, 0.3)
+            let from = null
+            if (clone && roomLamp) {
+                const r = roomLamp.getBoundingClientRect(), pr = pin.getBoundingClientRect()
+                if (r.width > 2) from = { x: r.left - pr.left + r.width / 2, y: r.top - pr.top + r.height / 2, s: Math.max(r.width, r.height) }
+            }
+            // lit as it was in the room, settling to the first mood's light
+            if (from) drawLamp(ctx, c, first, first, 0, 1 + (first.lampOn - 1) * k, cl(lampT / 0.12), from, lampT)
+            else if (k > 0) drawLamp(ctx, c, first, first, 0, first.lampOn * k, k)
             setInk(ROOM, first, k)
             eb.style.opacity = String(k)
             track.style.opacity = String(k)
