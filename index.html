@@ -1,13 +1,26 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-framer-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Silena — a quiet object of light</title>
+    <meta name="description" content="Silena: a soft disc of opal glass that lights a corner, not a room. A concept product site." />
+    <meta name="theme-color" content="#261E13" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..500&display=swap" rel="stylesheet" />
+    <link rel="preload" as="image" href="/images/hero-night.jpg" />
+    <script>
+      // day or night, before anything paints (night unless the visitor chose day)
+      try {
+        if (localStorage.getItem("silena-theme") === "light") document.documentElement.setAttribute("data-framer-theme", "light")
+      } catch (e) {}
+    </script>
   </head>
   <body>
+    <script>
+      document.body.setAttribute("data-framer-theme", document.documentElement.getAttribute("data-framer-theme"))
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

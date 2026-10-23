@@ -1,0 +1,127 @@
+/* Silena — page-wide styles. Day/night lives on <html data-framer-theme="dark|light">. */
+:root {
+    --bg: #261e13;
+    --ink: #f4e9dc;
+    --muted: rgba(244, 233, 220, 0.6);
+    --nav-bg: rgba(30, 23, 15, 0.62);
+    --ease: cubic-bezier(0.4, 0, 0.2, 1);
+    color-scheme: dark;
+}
+html[data-framer-theme="light"] {
+    --bg: #d8cab6;
+    --ink: #2e2216;
+    --muted: rgba(46, 34, 22, 0.62);
+    --nav-bg: rgba(228, 216, 199, 0.88);
+    color-scheme: light;
+}
+/* switched by hand: the colours glide (900ms, same as the hero photo) */
+html.silena-theming body,
+html.silena-theming .hero,
+html.silena-theming .process,
+html.silena-theming .nav-pill,
+html.silena-theming .hero-text,
+html.silena-theming .hero-center,
+html.silena-theming .section-eyebrow {
+    transition: background-color 0.9s var(--ease), color 0.9s var(--ease) !important;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Outfit", ui-sans-serif, system-ui, sans-serif;
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+.page { position: relative; width: 100%; overflow: clip; background: var(--bg); }
+.label { margin: 0; font-weight: 400; font-size: 12px; line-height: 1.2; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.body { margin: 0; font-weight: 300; font-size: 17px; line-height: 1.5; color: var(--ink); text-wrap: balance; }
+
+/* Lenis smooth scrolling */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: hidden; }
+
+/* ---------- nav ---------- */
+.nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 12px 42px;
+    pointer-events: none;
+}
+.nav > * { pointer-events: auto; }
+.nav-spacer { flex: 1 1 0; pointer-events: none; }
+.nav-pill {
+    display: flex; align-items: center; gap: 20px; height: 54px; padding: 0 20px;
+    border-radius: 51px; background: var(--nav-bg);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+}
+.nav-pill a {
+    font-size: 15px; line-height: 1.2; letter-spacing: 0.01em; font-weight: 300;
+    color: var(--ink); text-decoration: none; transition: opacity 0.2s;
+}
+.nav-pill a:hover { opacity: 0.7; }
+.nav-pill a:focus-visible, .silena-switch:focus-visible { outline: 2px solid #f0892a; outline-offset: 3px; border-radius: 6px; }
+.nav-theme { flex: 1 1 0; display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
+
+/* ---------- hero ---------- */
+.hero { position: relative; width: 100%; height: 100vh; height: 100svh; background: var(--bg); overflow: hidden; }
+.hero-photo { position: absolute; inset: 0; overflow: hidden; }
+.hero-photo img {
+    position: absolute; inset: 0; width: 100%; height: 100%; display: block;
+    object-fit: cover; object-position: center bottom;
+    transition: opacity 0.9s var(--ease);
+}
+.hero-center {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 36px;
+}
+.silena-word {
+    display: flex; align-items: center; gap: 34px; margin: 0; height: 262px;
+    zoom: var(--silena-title-z, 1);
+}
+.silena-letter { display: block; flex: none; overflow: visible; }
+.silena-letter-glow { opacity: 0; transition: opacity 0.45s ease; }
+.silena-letter:hover .silena-letter-glow { opacity: 1; }
+.hero-text { position: absolute; top: 104px; width: 300px; display: flex; flex-direction: column; gap: 8px; }
+.hero-credit { left: 42px; }
+.hero-note { right: 42px; }
+
+/* ---------- sections ---------- */
+.process { position: relative; z-index: 3; background: var(--bg); }
+.section-eyebrow {
+    position: absolute; top: 32px; left: 42px; z-index: 3;
+    font-weight: 400; font-size: 12px; line-height: 14px; letter-spacing: 0.14em; text-transform: uppercase;
+    transition: color 0.9s var(--ease);
+}
+/* desktop: once the room is built it stays pinned a little while, to be played with */
+@media (min-width: 861px) { .slr-host > .slr-spacer { height: calc(270vh + 50vh) !important; } }
+@media (max-width: 860px) { .slr .slr-wrap { grid-template-columns: minmax(0, 1fr) !important; } }
+
+/* ---------- phones ---------- */
+@media (max-width: 640px) {
+    .nav { padding: 12px; gap: 8px; }
+    .nav-spacer { display: none; }
+    .nav-pill { gap: 14px; padding: 0 16px; }
+    .nav-pill a { font-size: 13px; }
+    .nav-theme { flex: 0 0 auto; gap: 6px; }
+    .silena-switch { padding: 0 11px !important; gap: 0 !important; }
+    .silena-switch-lbl { display: none; }
+
+    .silena-word { zoom: var(--silena-title-z, 0.3); }
+    .hero-photo img { object-position: 30% 100%; }
+    .hero-text { top: 92px; width: calc(50% - 24px); }
+    .hero-credit { left: 16px; }
+    .hero-note { right: auto; left: calc(50% + 8px); }
+    .hero-text .body { font-size: 15px; }
+
+    .section-eyebrow { top: 92px; left: 16px; }
+    .slr-eb { top: 92px !important; }
+    .slr-eb span { left: 16px !important; }
+    .slx-eb { top: 92px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .hero-photo img, .silena-letter-glow { transition: none; }
+}
