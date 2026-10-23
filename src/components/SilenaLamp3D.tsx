@@ -136,6 +136,7 @@ export function makeRealLamp(THREE, cv: HTMLCanvasElement, opts: any = {}) {
     let target = POSE[opts.mount || "wall"], cur = { ...target }, yaw = 0, yawT = 0, base0 = 0, amp = 1, vel = 0, tilt = 0, tiltT = 0
     let on = opts.on == null ? 1 : opts.on, onT = on, drag = null, raf = 0, visible = true, t0 = performance.now()
     // build: how finished the lamp looks (see buildLamp().build), animated over time
+    let held = false
     let bld = opts.build == null ? 1 : opts.build, bA = bld, bB = bld, bT0 = 0, bDur = 1, ink = opts.ink
     L.build(bld, ink)
     const Y = new THREE.Vector3(0, 1, 0), X = new THREE.Vector3(1, 0, 0)
@@ -163,7 +164,7 @@ export function makeRealLamp(THREE, cv: HTMLCanvasElement, opts: any = {}) {
         if (!drag) {
             base0 += vel
             vel *= 0.95
-            amp = Math.min(1, amp + 0.004)
+            amp = held ? 0 : Math.min(1, amp + 0.004)
             yawT = opts.sway === false ? base0 : base0 + Math.sin((t - t0) / 2600) * 0.32 * amp
         }
         yaw += (yawT - yaw) * (drag ? 0.25 : 0.06)
@@ -220,6 +221,10 @@ export function makeRealLamp(THREE, cv: HTMLCanvasElement, opts: any = {}) {
         colors(f) { L.colors(f); draw() },
         mount(m) { target = POSE[m] || POSE.wall; base0 = Math.round(base0 / (2 * Math.PI)) * 2 * Math.PI; vel = 0; kick() },
         power(v) { onT = v; kick() },
+        // keep it still, facing you (while another lamp is landing on top of it)
+        hold() { base0 = 0; vel = 0; amp = 0; yawT = 0; yaw = 0; tiltT = 0; held = true; kick() },
+        // let it move again: the gentle sway eases in from where it is
+        release() { held = false; amp = 0; t0 = performance.now(); kick() },
         // go from the wire drawing to the finished lamp (or back), over ms milliseconds
         build(v, ms = 0, inkColor) {
             if (inkColor) ink = inkColor

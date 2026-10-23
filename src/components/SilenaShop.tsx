@@ -101,37 +101,23 @@ export default function SilenaShop(props) {
         loadThree()
             .then((THREE) => {
                 if (!alive || !canvas.current) return
-                // it arrives from Light Rituals as a wire drawing and builds itself into the lamp
-                const fromRituals = !!document.querySelector(".slx")
-                lamp.current = makeRealLamp(THREE, canvas.current, { mount, build: fromRituals ? 0 : 1, ink: inkRef.current })
+                lamp.current = makeRealLamp(THREE, canvas.current, { mount })
                 lamp.current.colors(fin)
+                // Light Rituals lands its lamp right here: hold still, facing you, until it has
+                const rit = document.querySelector(".slx")
+                if (rit && !landed && rit.getBoundingClientRect().bottom > window.innerHeight) lamp.current.hold()
             })
             .catch(() => {})
-        let built = false
-        const build = (on) => {
-            if (on === built || !lamp.current) return
-            built = on
-            lamp.current.build(on ? 1 : 0, on ? 2800 : 0, inkRef.current)
+        let landed = false
+        const onLanded = (e) => {
+            landed = !!e.detail
+            if (!lamp.current) return
+            if (landed) lamp.current.release()
+            else lamp.current.hold()
         }
-        // Light Rituals hands its lamp over here (and takes it back if you scroll up again)
-        const onLanded = (e) => build(!!e.detail)
         window.addEventListener("silena-lamp-landed", onLanded)
-        // arriving some other way (no hand-over on screen): build it as soon as the stage is in view
-        const io = new IntersectionObserver(
-            ([en]) => {
-                if (!en.isIntersecting || built) return
-                setTimeout(() => {
-                    const pin = document.querySelector(".slx-pin")
-                    const covered = pin && parseFloat(getComputedStyle(pin).opacity) > 0.1 && getComputedStyle(pin).visibility !== "hidden" && pin.getBoundingClientRect().bottom > 0
-                    if (!covered) build(true)
-                }, 400)
-            },
-            { threshold: 0.5 }
-        )
-        if (canvas.current) io.observe(canvas.current)
         return () => {
             alive = false
-            io.disconnect()
             window.removeEventListener("silena-lamp-landed", onLanded)
             lamp.current?.dispose()
             lamp.current = null

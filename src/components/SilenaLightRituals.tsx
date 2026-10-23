@@ -201,7 +201,14 @@ function mountRituals(host, o) {
     }
 
     // the window's sunlight (a shaft and a patch on the floor, with the shadows of the bars)
+    // between a light and a dark mood the sun is painted both ways (normal and additive), weighted,
+    // so it never flips from one to the other mid-way
     function paintSun(g, c, m, floorPts) {
+        const dk = m.dk == null ? (m.dark ? 1 : 0) : m.dk
+        if (dk < 0.999) paintSunOp(g, c, m, floorPts, "source-over", 1 - dk, dk)
+        if (dk > 0.001) paintSunOp(g, c, m, floorPts, "lighter", dk, dk)
+    }
+    function paintSunOp(g, c, m, floorPts, op, w, dk) {
         if (!(m.shaft > 0)) return
         const P = (x, y, z) => proj(c, x, y, z), j = c.s * 0.18
         const floor = floorPts || [P(0, 0, 0), P(13, 0, 0), P(13, 13, 0), P(0, 13, 0)]
@@ -212,7 +219,8 @@ function mountRituals(host, o) {
         gr.addColorStop(0, `rgba(${m.light},${m.shaft})`)
         gr.addColorStop(1, `rgba(${m.light},${m.shaft * 0.25})`)
         g.save()
-        g.globalCompositeOperation = m.dark ? "lighter" : "source-over"
+        g.globalCompositeOperation = op
+        g.globalAlpha = w
         g.fillStyle = gr
         poly(g, hp)
         g.fill()
@@ -220,14 +228,14 @@ function mountRituals(host, o) {
         g.save()
         poly(g, floor)
         g.clip()
-        g.globalCompositeOperation = m.dark ? "lighter" : "source-over"
-        g.globalAlpha = m.patch / 1.6
+        g.globalCompositeOperation = op
+        g.globalAlpha = (m.patch / 1.6) * w
         g.fillStyle = `rgb(${m.light})`
         poly(g, flp)
         g.fill()
         g.globalAlpha = 1
         g.globalCompositeOperation = "source-over"
-        g.strokeStyle = `rgba(0,0,0,${m.dark ? 0.25 : 0.12})`
+        g.strokeStyle = `rgba(0,0,0,${(0.12 + 0.13 * dk) * w})`
         g.lineWidth = c.s * 0.12
         for (const x of [3.83, 4.85, 5.88]) { const ta = 5.4 / dz, tb = 1.2 / dz; g.beginPath(); g.moveTo(...P(x + dx * ta, ta, 0)); g.lineTo(...P(x + dx * tb, tb, 0)); g.stroke() }
         g.restore()
@@ -240,7 +248,9 @@ function mountRituals(host, o) {
         const g = sunLo.getContext("2d")
         g.clearRect(0, 0, w, h)
         const L = (a, b) => a + (b - a) * f, la = A.light.split(",").map(Number), lb = B.light.split(",").map(Number)
-        const both = { sun: { dx: L(A.sun.dx, B.sun.dx), dz: L(A.sun.dz, B.sun.dz) }, light: la.map((v, i) => Math.round(v + (lb[i] - v) * f)).join(","), shaft: L(A.shaft, B.shaft), patch: L(A.patch, B.patch), dark: f < 0.5 ? A.dark : B.dark }
+        // half-way between two moods the sun softens a little, like a cloud passing, so the change reads as light, not a cut
+        const dip = 1 - 0.3 * Math.sin(Math.PI * f)
+        const both = { sun: { dx: L(A.sun.dx, B.sun.dx), dz: L(A.sun.dz, B.sun.dz) }, light: la.map((v, i) => Math.round(v + (lb[i] - v) * f)).join(","), shaft: L(A.shaft, B.shaft) * dip, patch: L(A.patch, B.patch) * dip, dk: L(A.dark ? 1 : 0, B.dark ? 1 : 0) }
         paintSun(g, { ox: c.ox * k, oy: c.oy * k, s: c.s * k }, both)
         return sunLo
     }
@@ -268,17 +278,20 @@ function mountRituals(host, o) {
         const pts = new THREE.SplineCurve(PR.map(([r, y]) => new THREE.Vector2(r, y))).getPoints(140).map((v) => new THREE.Vector2(Math.max(0.12, v.x), v.y))
         const geo = new THREE.LatheGeometry(pts, 160)
         geo.computeVertexNormals()
-        const U = { uTint: { value: new THREE.Color() }, uCore: { value: new THREE.Color() }, uRim: { value: new THREE.Color() }, uOn: { value: 0 }, uAmb: { value: 1 }, uAlpha: { value: 1 } }
+        const U = { uTint: { value: new THREE.Color() }, uCore: { value: new THREE.Color() }, uRim: { value: new THREE.Color() }, uOn: { value: 0 }, uAmb: { value: 1 }, uAlpha: { value: 1 }, uShop: { value: 0 } }
         const glass = new THREE.ShaderMaterial({
             uniforms: U,
             transparent: true,
             side: THREE.DoubleSide,
             vertexShader: `varying vec3 vN;varying vec3 vP;void main(){vN=normalize(normalMatrix*normal);vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-            fragmentShader: `uniform vec3 uTint;uniform vec3 uCore;uniform vec3 uRim;uniform float uOn;uniform float uAmb;uniform float uAlpha;varying vec3 vN;varying vec3 vP;
+            fragmentShader: `uniform vec3 uTint;uniform vec3 uCore;uniform vec3 uRim;uniform float uOn;uniform float uAmb;uniform float uAlpha;uniform float uShop;varying vec3 vN;varying vec3 vP;
 void main(){vec3 N=normalize(vN);vec3 V=vec3(0.,0.,1.);float fr=1.-max(dot(N,V),0.);
 vec3 L1=normalize(vec3(-.55,.75,.6)),L2=normalize(vec3(.7,.1,.5));float d1=max(dot(N,L1),0.),d2=max(dot(N,L2),0.);
 vec3 off=uTint*(.84+.22*d1+.06*d2-.1*fr)*uAmb+vec3(1.)*pow(max(dot(N,normalize(L1+V)),0.),14.)*.12*uAmb;
 vec3 glow=mix(uCore,uRim,smoothstep(.25,1.,fr));float r=length(vP.xz);glow*=mix(.85,1.04,smoothstep(.17,.45,r))*(.92+.14*d1);
+vec3 S1=normalize(vec3(-.5,.8,.6));float s1=max(dot(N,S1),0.);
+vec3 g2=mix(uCore,uRim,smoothstep(.25,1.,fr))*(1.-.25*smoothstep(0.,.9,fr));g2*=mix(.78,1.,smoothstep(.17,.45,r))*mix(1.,.9,smoothstep(.6,1.,r))*(.9+.16*s1);
+g2+=vec3(1.)*pow(max(dot(N,normalize(S1+V)),0.),14.)*.08;glow=mix(glow,g2,uShop);
 gl_FragColor=vec4(mix(off,glow,uOn),uAlpha);}`,
         })
         const grp = new THREE.Group(), shade = new THREE.Mesh(geo, glass)
@@ -300,6 +313,7 @@ gl_FragColor=vec4(mix(off,glow,uOn),uAlpha);}`,
         const wmat = new THREE.LineBasicMaterial({ color: 0xf4e9dc, transparent: true, opacity: 0, depthTest: false })
         const wire = new THREE.LineSegments(wgeo, wmat)
         wire.position.y = 0.04
+        wire.renderOrder = 10 // drawn over the glass
         const plate = new THREE.Mesh(new THREE.LatheGeometry([[.22, 0], [.62, 0], [.64, .02], [.62, .04], [.22, .04], [.22, 0]].map(([r, y]) => new THREE.Vector2(r, y)), 96), new THREE.MeshBasicMaterial({ color: 0xd9d3c9 }))
         shade.position.y = 0.04
         grp.add(plate, shade, wire)
@@ -329,7 +343,8 @@ gl_FragColor=vec4(mix(off,glow,uOn),uAlpha);}`,
                 const a = new THREE.Vector3(0, 1, 0).applyQuaternion(grp.quaternion), r = new THREE.Vector3(-1, 1, 0).normalize(), up = new THREE.Vector3(-1, -1, 2).normalize()
                 return [a.dot(r), -a.dot(up)]
             },
-            render(px, tint, core, rim, on, amb, alpha = 1, wireA = 0, wireCol = "#F4E9DC") {
+            render(px, tint, core, rim, on, amb, alpha = 1, wireA = 0, wireCol = "#F4E9DC", shop = 0) {
+                U.uShop.value = shop
                 const s = Math.min(1024, Math.round(px))
                 if (ren.domElement.width !== s) ren.setSize(s, s, false)
                 U.uAlpha.value = alpha
@@ -355,7 +370,7 @@ gl_FragColor=vec4(mix(off,glow,uOn),uAlpha);}`,
         L3.place()
         return L3
     }
-    function drawLamp(g, c, A, B, f, on, alpha = 1) {
+    function drawLamp(g, c, A, B, f, on, alpha = 1, from = null, t = 1) {
         const lerp = (a, b) => a + (b - a) * f
         const sh = { x: lerp(A.shadow.x, B.shadow.x), y: lerp(A.shadow.y, B.shadow.y), a: lerp(A.shadow.a, B.shadow.a), b: lerp(A.shadow.b, B.shadow.b) }
         const P = (x, y, z) => proj(c, x, y, z)
@@ -365,8 +380,10 @@ gl_FragColor=vec4(mix(off,glow,uOn),uAlpha);}`,
         g.save()
         g.globalAlpha = alpha
         // the shadow it casts on the wall (away from the window), and a soft contact shadow
-        if (sh.a > 0.01) {
+        const shK = from ? t * t : 1
+        if (sh.a > 0.01 && shK > 0.01) {
             g.save()
+            g.globalAlpha = alpha * shK
             g.translate(-W * 3, 0)
             g.shadowColor = `rgba(20,10,4,${sh.a * (1 - on * 0.7)})`
             g.shadowBlur = c.s * sh.b * 0.8
@@ -378,6 +395,7 @@ gl_FragColor=vec4(mix(off,glow,uOn),uAlpha);}`,
             g.restore()
         }
         g.save()
+        g.globalAlpha = alpha * shK
         g.translate(-W * 3, 0)
         g.shadowColor = `rgba(20,10,4,${0.25 * (1 - on * 0.5)})`
         g.shadowBlur = c.s * 0.15
@@ -388,8 +406,15 @@ gl_FragColor=vec4(mix(off,glow,uOn),uAlpha);}`,
         g.restore()
         const l3 = lamp3()
         if (l3) {
-            const px = 2 * l3.HB * c.s * 1.2247, ctr = P(l3.T.y, l3.T.x, l3.T.z)
+            let px = 2 * l3.HB * c.s * 1.2247, ctr = P(l3.T.y, l3.T.x, l3.T.z)
+            // coming from where the lamp stood in the room: it glides to the wall and takes its size
+            if (from) {
+                const e = ease(t), ps = from.s / (K / l3.HB)
+                ctr = [from.x + (ctr[0] - from.x) * e, from.y + (ctr[1] - from.y) * e]
+                px = ps + (px - ps) * e
+            }
             const img = l3.render(px * Math.min(DPR, 2), "#EEEAE3", mix(lamp, "#FFFFFF", 0.6), mix(lamp, "#FFFFFF", 0.15), on, 1 - dk * 0.45)
+            g.globalAlpha = alpha
             g.drawImage(img, ctr[0] - px / 2, ctr[1] - px / 2, px, px)
         } else {
             // no WebGL: a flat glass ring in the wall's plane
@@ -424,7 +449,9 @@ gl_FragColor=vec4(mix(off,glow,uOn),uAlpha);}`,
         // drawing with its dimensions; 3. it fills in again, turns to face you and lands on the shop
         const a1 = ease(cl((out - 0.04) / 0.26)), a2 = ease(cl((out - 0.64) / 0.24))
         // the wire drawing appears and stays: the lamp lands in the shop still half built
-        const wv = ease(cl((out - 0.24) / 0.22))
+        const wv = ease(cl((out - 0.2) / 0.2))
+        // as it reaches the card the drawing lines go and it settles into the shop's 3D lamp
+        const wOut = ease(cl((out - 0.62) / 0.24))
         const l3 = lamp3()
         const P = (x, y, z) => proj(c, x, y, z)
         const start = P(0.4 * K, LY, LZ), rs = K * c.s * 1.2247, tg = shopTarget(out)
@@ -442,7 +469,7 @@ gl_FragColor=vec4(mix(off,glow,uOn),uAlpha);}`,
         l3.place(a1, a2)
         const ink = o.mode === "light" ? "#2E2216" : "#F4E9DC"
         const px = (2 * l3.HB * r) / K
-        const img = l3.render(px * Math.min(DPR, 2), mix("#EEEAE3", SHOP_LAMP.tint, u), mix(mix(lampCol, "#FFFFFF", 0.6), SHOP_LAMP.core, u), mix(mix(lampCol, "#FFFFFF", 0.15), SHOP_LAMP.rim, u), on0 + (1 - on0) * u, 1, 1 - 0.62 * wv, 0.9 * wv, ink)
+        const img = l3.render(px * Math.min(DPR, 2), mix("#EEEAE3", SHOP_LAMP.tint, u), mix(mix(lampCol, "#FFFFFF", 0.6), SHOP_LAMP.core, u), mix(mix(lampCol, "#FFFFFF", 0.15), SHOP_LAMP.rim, u), on0 + (1 - on0) * u, 1, 1, 0.85 * wv * (1 - wOut), ink, a2)
         ctx.drawImage(img, cx - px / 2, cy - px / 2, px, px)
         if (wv > 0.02) dimensions(cx, cy, r, wv * (1 - a2), ink)
         l3.place(0, 0)
@@ -562,7 +589,7 @@ gl_FragColor=vec4(mix(off,glow,uOn),uAlpha);}`,
     }
 
     /* ---------- the hand-off from the room (desktop): a copy of the room, exactly where it was ---------- */
-    let clone = null, cloneSvg = null, clonePaint = null, fade = [], cloneCam = null
+    let clone = null, cloneSvg = null, clonePaint = null, fade = [], cloneCam = null, fadeLamp = [], roomLamp = null
     const roomHost = o.handoff ? document.querySelector(".slr-host") : null
     function makeClone(ritTop) {
         const src = roomHost && roomHost.querySelector(".slr")
@@ -582,8 +609,13 @@ gl_FragColor=vec4(mix(off,glow,uOn),uAlpha);}`,
         clonePaint = cloneSvg.querySelector('g[filter*="slr-paint"]') || (wall && wall.parentNode)
         fade = []
         if (clonePaint) [...clonePaint.children].forEach((e) => { if (e.tagName.toLowerCase() === "g" && !e.getAttribute("clip-path")) fade.push(e) })
-        cloneSvg.querySelectorAll('[id="slr-anim"],[id="slr-lamp"],[id="slr-selBox"],.hot').forEach((e) => fade.push(e))
-        cloneSvg.querySelectorAll('[id="slr-shaft"],[id="slr-glow"],[id="slr-pool"]').forEach((e) => fade.push(e))
+        cloneSvg.querySelectorAll('[id="slr-anim"],[id="slr-selBox"],.hot').forEach((e) => fade.push(e))
+        cloneSvg.querySelectorAll('[id="slr-shaft"]').forEach((e) => fade.push(e))
+        // the persona's lamp and its light stay until the 3D lamp takes over from the same spot
+        fadeLamp = [...cloneSvg.querySelectorAll('[id="slr-lamp"],[id="slr-glow"],[id="slr-pool"],[id="slr-maskLamp"]')]
+        fadeLamp.forEach((e) => (e._o = parseFloat(getComputedStyle(e).opacity) || 0))
+        roomLamp = cloneSvg.querySelector('[id="slr-lamp"]')
+        if (roomLamp && (roomLamp.classList.contains("off") || roomLamp._o < 0.3)) roomLamp = null
         clone.querySelectorAll(".spots,.slr-text,.card").forEach((e) => fade.push(e))
         // remember how visible each one was (some are hidden by the room's own classes)
         fade.forEach((e) => (e._o = parseFloat(getComputedStyle(e).opacity) || 0))
@@ -677,6 +709,9 @@ gl_FragColor=vec4(mix(off,glow,uOn),uAlpha);}`,
                 // 1. the room as it was: furniture and text fade away; 2. it grows to fill the screen
                 roomBox.style.display = ""
                 fade.forEach((e) => (e.style.opacity = String(e._o * (1 - empty))))
+                // the room's lamp fades as the 3D lamp appears on top of it
+                const lk = roomLamp ? 1 - ease(cl(k * 3)) : 1 - empty
+                fadeLamp.forEach((e) => (e.style.opacity = String(e._o * lk)))
                 const z = c.s / cs.s
                 clone.style.transform = `translate(${c.ox - cs.sx - (cs.ox - cs.sx) * z}px,${c.oy - cs.sy - (cs.oy - cs.sy) * z}px) scale(${z})`
                 // the paint filter is too heavy to scale; the canvas takes over by then
@@ -690,7 +725,12 @@ gl_FragColor=vec4(mix(off,glow,uOn),uAlpha);}`,
                 ctx.globalAlpha = k
                 ctx.drawImage(live(first, c, ext), 0, 0, W, H)
                 ctx.globalAlpha = 1
-                drawLamp(ctx, c, first, first, 0, first.lampOn * k, k)
+                let from = null
+                if (clone && roomLamp) {
+                    const r = roomLamp.getBoundingClientRect(), pr = pin.getBoundingClientRect()
+                    if (r.width > 2) from = { x: r.left - pr.left + r.width / 2, y: r.top - pr.top + r.height / 2, s: Math.max(r.width, r.height) }
+                }
+                drawLamp(ctx, c, first, first, 0, first.lampOn * Math.max(k, from ? 0.6 : 0), from ? Math.min(1, k * 3) : k, from, from ? cl((k - 0.15) / 0.85) : 1)
                 guides(ctx, c, mix(ROOM.ink, first.ink, k), 0.3 * k)
             } else if (!clone) guides(ctx, c, ROOM.ink, 0.3)
             setInk(ROOM, first, k)
@@ -713,7 +753,8 @@ gl_FragColor=vec4(mix(off,glow,uOn),uAlpha);}`,
             else outroLamp(c, B, on, out, bgK)
             eb.style.opacity = String(1 - bgK)
             track.style.opacity = String(1 - bgK)
-            grain.style.opacity = String(0.22 * (1 - bgK))
+            // the painted grain stays on the lamp until it settles into the shop
+            grain.style.opacity = String(0.22 * (out > 0 ? 1 - ease(cl((out - 0.6) / 0.3)) : 1))
         }
         // the very end: this screen fades away over the shop, which is already in place below
         pin.style.opacity = String(1 - ease(cl((out - 0.9) / 0.1)))
@@ -819,7 +860,7 @@ export default function SilenaLightRituals(props) {
     // the persona last chosen in the room picks the light the day starts with
     const [start, setStart] = useState("morning")
     useEffect(() => {
-        const MOOD = { reader: "morning", storyteller: "afternoon", host: "evening", dreamer: "night" }
+        const MOOD = { host: "morning", storyteller: "afternoon", reader: "evening", dreamer: "night" }
         const onPersona = (e) => {
             const m = MOOD[e.detail]
             if (!m) return

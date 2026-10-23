@@ -11,9 +11,9 @@ import SilenaShop from "./components/SilenaShop.tsx"
 
 // the room's personas, as written for the site
 const ROOM = {
-    readerLight: "<b>Honey white</b> · lying on the side table",
+    readerLight: "<b>Amber</b> · lying on the side table",
     storyLight: "<b>Warm white</b> · on the wall, among the pictures",
-    hostLight: "<b>Amber</b> · lying in the middle of the table",
+    hostLight: "<b>Honey white</b> · lying in the middle of the table",
     dreamerLight: "<b>Lavender</b> · on the wall, above the record player",
 }
 
