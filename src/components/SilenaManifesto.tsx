@@ -4,7 +4,7 @@
 //  2. Images bloom around and over the sentence, each drifting at its own speed, then fade away.
 // Colours follow the Silena day/night switch. The eyebrow sits at the nav's height
 // (top 32px, left 42px) for as long as the section is pinned.
-import { useRef, type CSSProperties } from "react"
+import { useEffect, useRef, type CSSProperties } from "react"
 import { motion, useScroll, useTransform, useSpring, type MotionValue } from "framer-motion"
 import { useSilenaMode } from "./useSilenaMode.js"
 
@@ -31,13 +31,14 @@ function Word({ p, start, end, children }: { p: MotionValue<number>; start: numb
     return <motion.span style={{ opacity, display: "inline-block", marginRight: "0.26em" }}>{children}</motion.span>
 }
 
-function Floating({ p, src, i, slot }: { p: MotionValue<number>; src: string; i: number; slot: (typeof SLOTS)[number] }) {
+function Floating({ p, src, i, slot, boxRef }: { p: MotionValue<number>; src: string; i: number; slot: (typeof SLOTS)[number]; boxRef: (el: HTMLDivElement | null) => void }) {
     const t = 0.5 + i * 0.05
     const opacity = useTransform(p, [t, t + 0.06, 0.86, 0.98], [0, 1, 1, 0])
     const scale = useTransform(p, [t, t + 0.1], [0.9, 1])
     const y = useTransform(p, [t, 1], [`${16 * slot.s}vh`, `${-30 * slot.s}vh`])
     return (
         <motion.div
+            ref={boxRef}
             style={{
                 position: "absolute",
                 left: `${slot.x}%`,
@@ -77,6 +78,38 @@ export default function SilenaManifesto(props) {
     const glowOpacity = useTransform(p, [0, 0.35], [0, 1])
 
     const words = text.split(/\s+/).filter(Boolean)
+
+    // a design-tool selection box that jumps from one image to the next as each one arrives
+    const boxes = useRef<(HTMLDivElement | null)[]>([])
+    const pinRef = useRef<HTMLDivElement>(null)
+    const frameRef = useRef<HTMLDivElement>(null)
+    const labelRef = useRef<HTMLSpanElement>(null)
+    useEffect(() => {
+        let raf = 0, cur = null, shown = 0
+        const tick = () => {
+            raf = requestAnimationFrame(tick)
+            const fr = frameRef.current, pin = pinRef.current
+            if (!fr || !pin) return
+            const v = p.get()
+            let act = -1
+            IMAGES.forEach((_, i) => { if (v >= 0.5 + i * 0.05 + 0.02) act = i })
+            const on = act >= 0 && v < 0.86
+            shown += ((on ? 1 : 0) - shown) * 0.15
+            fr.style.opacity = shown.toFixed(3)
+            if (act < 0 || !boxes.current[act]) return
+            const a = boxes.current[act].getBoundingClientRect(), b = pin.getBoundingClientRect()
+            const t = { x: a.left - b.left, y: a.top - b.top, w: a.width, h: a.height }
+            if (!cur) cur = { ...t }
+            // it glides over to the new image, a little behind it, like a cursor would
+            for (const k of ["x", "y", "w", "h"]) cur[k] += (t[k] - cur[k]) * 0.16
+            fr.style.transform = `translate(${cur.x - 6}px,${cur.y - 6}px)`
+            fr.style.width = cur.w + 12 + "px"
+            fr.style.height = cur.h + 12 + "px"
+            if (labelRef.current) labelRef.current.textContent = `Feel · 0${act + 1} / 0${IMAGES.length}`
+        }
+        raf = requestAnimationFrame(tick)
+        return () => cancelAnimationFrame(raf)
+    }, [p])
     const span = 0.38
 
     return (
@@ -93,6 +126,7 @@ export default function SilenaManifesto(props) {
                     padding: "0 56px",
                 }}
                 className="slm-pin"
+                ref={pinRef}
             >
                 <motion.div
                     aria-hidden
@@ -111,8 +145,15 @@ export default function SilenaManifesto(props) {
                 </span>
 
                 {IMAGES.map((src, i) => (
-                    <Floating key={i} p={p} src={src} i={i} slot={SLOTS[i]} />
+                    <Floating key={i} p={p} src={src} i={i} slot={SLOTS[i]} boxRef={(el) => (boxes.current[i] = el)} />
                 ))}
+                <div className="sel-frame" ref={frameRef} aria-hidden="true">
+                    <span className="sel-label" ref={labelRef} />
+                    <i className="tl" />
+                    <i className="tr" />
+                    <i className="bl" />
+                    <i className="br" />
+                </div>
 
                 <div style={{ position: "relative", zIndex: 2, maxWidth: 1080, textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 48 }}>
                     <p

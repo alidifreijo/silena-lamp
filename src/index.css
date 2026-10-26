@@ -142,3 +142,42 @@ html.lenis, html.lenis body { height: auto; }
 @media (prefers-reduced-motion: reduce) {
     .hero-photo img, .silena-letter-glow { transition: none; }
 }
+
+/* ---------- chapter progress rail ---------- */
+.rail {
+    position: fixed; right: 18px; top: 50%; transform: translateY(-50%); z-index: 90;
+    display: flex; flex-direction: column; gap: 8px; pointer-events: none;
+    opacity: 0; transition: opacity 0.6s ease;
+}
+.rail-seg { position: relative; display: flex; align-items: center; justify-content: flex-end; gap: 10px; height: 46px; }
+.rail-track { position: relative; width: 2px; height: 100%; border-radius: 2px; background: color-mix(in srgb, var(--ink) 18%, transparent); overflow: hidden; }
+.rail-fill { position: absolute; inset: 0; background: var(--ink); transform-origin: 50% 0; transform: scaleY(0); }
+.rail-n {
+    font-size: 10px; letter-spacing: 0.12em; color: var(--muted);
+    opacity: 0; transform: translateX(4px); transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.rail-seg.on .rail-n { opacity: 1; transform: none; }
+@media (max-width: 640px) { .rail { right: 6px; gap: 6px; } .rail-seg { height: 34px; } .rail-n { display: none; } }
+
+/* ---------- 01 Feel: the selection box over the images ---------- */
+.sel-frame {
+    position: absolute; left: 0; top: 0; z-index: 2; pointer-events: none; opacity: 0;
+    border: 1px dashed color-mix(in srgb, var(--ink) 70%, transparent);
+}
+.sel-frame i {
+    position: absolute; width: 8px; height: 8px; background: var(--bg);
+    border: 1px solid #f0892a; box-sizing: border-box;
+}
+.sel-frame .tl { left: -4px; top: -4px; } .sel-frame .tr { right: -4px; top: -4px; }
+.sel-frame .bl { left: -4px; bottom: -4px; } .sel-frame .br { right: -4px; bottom: -4px; }
+.sel-label {
+    position: absolute; left: -1px; bottom: calc(100% + 6px); white-space: nowrap;
+    font-size: 10px; letter-spacing: 0.08em; padding: 3px 6px; border-radius: 3px;
+    background: #f0892a; color: #261e13;
+}
+
+/* ---------- the lamp that leaves the hero photo ---------- */
+.hero-lamp {
+    position: fixed; left: 0; top: 0; z-index: 1; pointer-events: none;
+    transform-origin: 0 0; visibility: hidden; opacity: 0; will-change: transform, opacity;
+}

@@ -8,6 +8,8 @@ import SilenaManifesto from "./components/SilenaManifesto.tsx"
 import SilenaRoom from "./components/SilenaRoom.tsx"
 import SilenaLightRituals from "./components/SilenaLightRituals.tsx"
 import SilenaShop from "./components/SilenaShop.tsx"
+import Progress from "./components/Progress.jsx"
+import HeroLamp from "./components/HeroLamp.jsx"
 
 // the room's personas, as written for the site
 const ROOM = {
@@ -52,6 +54,8 @@ export default function App() {
     return (
         <div className="page">
             <Nav />
+            <Progress />
+            <HeroLamp />
             <Hero />
             <SilenaManifesto />
             <div id="place" className="process">

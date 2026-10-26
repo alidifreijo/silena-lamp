@@ -359,6 +359,19 @@ gl_FragColor=vec4(mix(off,glow,uOn),uAlpha);}`,
                 ren.render(scene, cam)
                 return ren.domElement
             },
+            // a circle of the lamp (radius r, at height y in its own profile) as the four anchors and
+            // eight handles of a bezier path, projected onto the last rendered image (0..1 coordinates)
+            bezierRing(r, y) {
+                grp.updateMatrixWorld(true)
+                cam.updateMatrixWorld()
+                const P = (x, z) => { const v = new THREE.Vector3(x, y + 0.04, z).applyMatrix4(grp.matrixWorld).project(cam); return [(v.x + 1) / 2, (1 - v.y) / 2] }
+                const k = 0.5523 * r, out = []
+                for (let i = 0; i < 4; i++) {
+                    const a = (i * Math.PI) / 2, c = Math.cos(a), s = Math.sin(a)
+                    out.push({ p: P(r * c, r * s), hin: P(r * c + k * s, r * s - k * c), hout: P(r * c - k * s, r * s + k * c) })
+                }
+                return out
+            },
             dispose() {
                 geo.dispose()
                 glass.dispose()
@@ -470,10 +483,68 @@ gl_FragColor=vec4(mix(off,glow,uOn),uAlpha);}`,
         l3.place(a1, a2)
         const ink = o.mode === "light" ? "#2E2216" : "#F4E9DC"
         const px = (2 * l3.HB * r) / K
-        const img = l3.render(px * Math.min(DPR, 2), mix("#EEEAE3", SHOP_LAMP.tint, u), mix(mix(lampCol, "#FFFFFF", 0.6), SHOP_LAMP.core, u), mix(mix(lampCol, "#FFFFFF", 0.15), SHOP_LAMP.rim, u), on0 + (1 - on0) * u, 1, 1, 0.85 * wv * (1 - wOut), ink, a2)
+        const img = l3.render(px * Math.min(DPR, 2), mix("#EEEAE3", SHOP_LAMP.tint, u), mix(mix(lampCol, "#FFFFFF", 0.6), SHOP_LAMP.core, u), mix(mix(lampCol, "#FFFFFF", 0.15), SHOP_LAMP.rim, u), on0 + (1 - on0) * u, 1, 1, 0, ink, a2)
         ctx.drawImage(img, cx - px / 2, cy - px / 2, px, px)
+        // the design drawing: the lamp's outline as vector paths, anchors and handles, drawn over it
+        if (wv > 0.01 && wOut < 0.99) vectorDrawing(l3, cx - px / 2, cy - px / 2, px, cl((out - 0.18) / 0.22), (1 - wOut) * Math.min(1, wv * 1.5), ink)
         if (wv > 0.02) dimensions(cx, cy, r, wv * (1 - a2), ink)
         l3.place(0, 0)
+    }
+
+    // the lamp as a designer draws it: bezier paths (outer rim, front face, hole) with their anchor
+    // points and handles, traced on as you scroll
+    const SEL = "#F0892A"
+    function vectorDrawing(l3, x0, y0, px, prog, alpha, ink) {
+        const rings = [[1.0, 0.4, true], [0.62, 0.77, false], [0.165, 0.27, true]]
+        const M = ([u, v]) => [x0 + u * px, y0 + v * px]
+        ctx.save()
+        ctx.globalAlpha = alpha
+        ctx.lineCap = "round"
+        rings.forEach(([rr, yy, anchors], ri) => {
+            const B = l3.bezierRing(rr, yy)
+            // the path, traced progressively (each ring a little after the previous one)
+            const t = cl(prog * 1.25 - ri * 0.12)
+            if (t <= 0) return
+            const pts = []
+            for (let i = 0; i < 4; i++) {
+                const a = B[i], b = B[(i + 1) % 4], p0 = M(a.p), p1 = M(a.hout), p2 = M(b.hin), p3 = M(b.p)
+                for (let k = 0; k <= 24; k++) {
+                    const s = k / 24, q = 1 - s
+                    pts.push([q * q * q * p0[0] + 3 * q * q * s * p1[0] + 3 * q * s * s * p2[0] + s * s * s * p3[0], q * q * q * p0[1] + 3 * q * q * s * p1[1] + 3 * q * s * s * p2[1] + s * s * s * p3[1]])
+                }
+            }
+            const n = Math.max(2, Math.round(pts.length * t))
+            ctx.strokeStyle = SEL
+            ctx.lineWidth = ri === 1 ? 1 : 1.4
+            ctx.setLineDash(ri === 1 ? [4, 5] : [])
+            ctx.beginPath()
+            pts.slice(0, n).forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)))
+            ctx.stroke()
+            ctx.setLineDash([])
+            if (!anchors) return
+            B.forEach((a, i) => {
+                const at = cl((t - i * 0.25) / 0.12)
+                if (at <= 0) return
+                const [ax, ay] = M(a.p)
+                ctx.globalAlpha = alpha * at
+                // handles: thin lines to small round ends
+                ctx.strokeStyle = ink
+                ctx.lineWidth = 0.8
+                for (const h of [a.hin, a.hout]) {
+                    const [hx, hy] = M(h), ex = ax + (hx - ax) * at, ey = ay + (hy - ay) * at
+                    ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ex, ey); ctx.stroke()
+                    ctx.beginPath(); ctx.arc(ex, ey, 2.6, 0, 7); ctx.fillStyle = SEL; ctx.fill()
+                }
+                // the anchor: a small square
+                ctx.fillStyle = o.mode === "light" ? "#F4EDE2" : "#261E13"
+                ctx.strokeStyle = SEL
+                ctx.lineWidth = 1.2
+                ctx.fillRect(ax - 3.5, ay - 3.5, 7, 7)
+                ctx.strokeRect(ax - 3.5, ay - 3.5, 7, 7)
+                ctx.globalAlpha = alpha
+            })
+        })
+        ctx.restore()
     }
 
     // the technical drawing's dimensions (lamp seen three-quarter, its axis pointing right):

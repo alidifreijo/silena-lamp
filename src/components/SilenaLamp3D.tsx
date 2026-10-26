@@ -131,6 +131,7 @@ export function makeRealLamp(THREE, cv: HTMLCanvasElement, opts: any = {}) {
     const cam = new THREE.PerspectiveCamera(opts.fov || 24, 1, 0.1, 60)
     cam.position.set(0, 0, opts.dist || 8.4)
     const L = buildLamp(THREE)
+    if (opts.cable === false) L.cable.visible = false
     scene.add(L.rig)
     const rig = L.rig
     let target = POSE[opts.mount || "wall"], cur = { ...target }, yaw = 0, yawT = 0, base0 = 0, amp = 1, vel = 0, tilt = 0, tiltT = 0
@@ -151,7 +152,8 @@ export function makeRealLamp(THREE, cv: HTMLCanvasElement, opts: any = {}) {
         ren.render(scene, cam)
     }
     function size() {
-        const r = cv.getBoundingClientRect()
+        // the canvas's own size (a CSS transform on it doesn't change its resolution)
+        const r = { width: cv.clientWidth, height: cv.clientHeight }
         if (!r.width) return
         ren.setSize(r.width, r.height, false)
         cam.aspect = r.width / r.height
@@ -209,8 +211,9 @@ export function makeRealLamp(THREE, cv: HTMLCanvasElement, opts: any = {}) {
         cv.addEventListener("pointerup", up)
         cv.addEventListener("pointercancel", up)
     }
+    let paused = false
     const io = new IntersectionObserver(([en]) => {
-        visible = en.isIntersecting
+        visible = en.isIntersecting && !paused
         if (visible) kick()
     })
     io.observe(cv)
@@ -221,6 +224,8 @@ export function makeRealLamp(THREE, cv: HTMLCanvasElement, opts: any = {}) {
         colors(f) { L.colors(f); draw() },
         mount(m) { target = POSE[m] || POSE.wall; base0 = Math.round(base0 / (2 * Math.PI)) * 2 * Math.PI; vel = 0; kick() },
         power(v) { onT = v; kick() },
+        // stop drawing while it is hidden (and start again)
+        pause(p) { if (p === paused) return; paused = p; visible = !p; if (!p) kick() },
         // keep it still, facing you (while another lamp is landing on top of it)
         hold() { base0 = 0; vel = 0; amp = 0; yawT = 0; yaw = 0; tiltT = 0; held = true; kick() },
         // let it move again: the gentle sway eases in from where it is
