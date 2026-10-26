@@ -780,7 +780,8 @@ gl_FragColor=vec4(col,uAlpha);}`,
             if (o.handoff && active && !clone) makeClone(ritTop)
             const cs = clone ? cloneCam : camStart(), ce = camEnd()
             const c = { ox: cs.ox + (ce.ox - cs.ox) * intro, oy: cs.oy + (ce.oy - cs.oy) * intro, s: cs.s + (ce.s - cs.s) * intro }
-            const k = cl((intro - 0.12) / 0.6), ext = 10 + 3 * intro
+            // the painted mood (and its grain) starts as soon as the room begins to empty
+            const k = cl((intro + empty * 0.12) / 0.55), ext = 10 + 3 * intro
             // the persona's lamp travels with the whole hand-over, starting as the furniture fades
             const lampT = cl(p / (INTRO * 0.82))
             if (clone) {
@@ -817,7 +818,7 @@ gl_FragColor=vec4(col,uAlpha);}`,
             setInk(ROOM, first, k)
             eb.style.opacity = String(k)
             track.style.opacity = String(k)
-            grain.style.opacity = String(0.22 * (clone ? k : 1))
+            grain.style.opacity = String(0.22 * (clone ? Math.max(k, empty) : 1))
         } else {
             roomBox.style.display = "none"
             const c = camEnd()

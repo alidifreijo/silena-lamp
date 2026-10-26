@@ -55,7 +55,20 @@ const LAYOUT =
     /* entry: line-drawing twins of the pieces, and the touch points' first pulse */
     ".slr .slr-sk,.slr .slr-sk *{fill:none!important;stroke:var(--ink)!important;stroke-width:1.25px!important;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}" +
     "@keyframes slrPing{0%{box-shadow:0 0 0 0 rgba(255,226,180,.6)}70%{box-shadow:0 0 0 22px rgba(255,226,180,0)}100%{box-shadow:0 0 0 22px rgba(255,226,180,0)}}" +
-    ".slr .spots.ping .spot{animation:slrPing 1.4s ease-out 3}"
+    ".slr .spots.ping .spot{animation:slrPing 1.4s ease-out 3}" +
+    /* the touch points are points of light: a bright core in a soft warm halo, breathing gently */
+    ".slr .spots .spot{--rot:0deg;width:16px!important;height:16px!important;border-radius:50%!important;border:0!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;" +
+    "background:radial-gradient(circle,#fff 0 22%,rgba(255,232,196,.95) 38%,rgba(255,196,128,.45) 62%,rgba(255,196,128,0) 72%)!important;" +
+    "box-shadow:0 0 12px 3px rgba(255,204,146,.5),0 0 32px 10px rgba(255,180,110,.2)!important;animation:slrGlow 3.2s ease-in-out infinite}" +
+    ".slr .spots .spot:nth-child(2){animation-delay:-.8s}.slr .spots .spot:nth-child(3){animation-delay:-1.6s}.slr .spots .spot:nth-child(4){animation-delay:-2.4s}" +
+    ".slr .spots .spot i{display:none!important}" +
+    ".slr .spots .spot:hover,.slr .spots .spot:focus-visible{transform:translate(-50%,-50%) scale(1.45)}" +
+    ".slr .spots .spot.cur{background:radial-gradient(circle,#fff 0 22%,color-mix(in srgb,var(--acc) 70%,#fff) 40%,color-mix(in srgb,var(--acc) 45%,transparent) 62%,transparent 72%)!important;box-shadow:0 0 14px 4px color-mix(in srgb,var(--acc) 70%,transparent),0 0 40px 14px color-mix(in srgb,var(--acc) 30%,transparent)!important}" +
+    "@keyframes slrGlow{50%{box-shadow:0 0 16px 5px rgba(255,214,160,.66),0 0 44px 16px rgba(255,180,110,.3)}}" +
+    ".slr .spots.ping .spot{animation:slrBurst 1.4s ease-out 3}" +
+    "@keyframes slrBurst{0%{box-shadow:0 0 12px 3px rgba(255,204,146,.5),0 0 0 0 rgba(255,214,160,.55)}70%{box-shadow:0 0 18px 6px rgba(255,214,160,.7),0 0 0 26px rgba(255,214,160,0)}100%{box-shadow:0 0 12px 3px rgba(255,204,146,.5),0 0 0 26px rgba(255,214,160,0)}}" +
+    /* while it builds, the drawing settles in (a slow zoom), so every bit of scroll shows something */
+    ".slr .stage{transform-origin:50% 60%;will-change:transform}"
 
 /* ---------- entry: the room is drawn, then painted, as you scroll ----------
    1. Structure: the outlines of the walls, floor and window draw themselves like pencil lines.
@@ -175,7 +188,13 @@ function assemble(host, root, pinVh, opts) {
     }
     // only pieces that are moving are touched each frame; finished ones drop their mask
     const guides = [...svg.querySelectorAll(".slr-guide")]
+    const stage = root.querySelector(".stage")
     function apply(p) {
+        // the whole drawing settles in as it builds: a slow zoom and drift, always moving with the scroll
+        if (stage) {
+            const e = 1 - Math.pow(1 - p, 2)
+            stage.style.transform = p >= 1 ? "" : `translateY(${((1 - e) * 26).toFixed(1)}px) scale(${(0.9 + 0.1 * e).toFixed(4)})`
+        }
         // the touch points show up while the last pieces are still landing
         root.classList.toggle("spots-on", p > 0.62)
         // 0. the sketch guides first
@@ -327,7 +346,7 @@ function assemble(host, root, pinVh, opts) {
         lastRaw = p
         lead *= 0.95
         goal = Math.max(goal, Math.min(1, p + lead))
-        const next = done + (goal - done) * 0.035
+        const next = done + (goal - done) * 0.07
         if (next > done + 0.00005) {
             done = goal - next < 0.0008 ? goal : next
             apply(done)

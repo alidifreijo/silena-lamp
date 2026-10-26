@@ -169,6 +169,7 @@ export function mount(root: HTMLElement, COPY: any, NIGHTL: string, DAYL: string
      <linearGradient id="slr-skyN" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#34436A"/><stop offset="1" stop-color="#5A6A90"/></linearGradient>
      <radialGradient id="slr-glowG"><stop offset="0" style="stop-color:var(--lamp)" stop-opacity=".95"/><stop offset=".35" style="stop-color:var(--lamp)" stop-opacity=".35"/><stop offset="1" style="stop-color:var(--lamp)" stop-opacity="0"/></radialGradient>
      <radialGradient id="slr-poolG"><stop id="slr-poolStop" offset="0" style="stop-color:var(--lamp)" stop-opacity=".75"/><stop offset="1" style="stop-color:var(--lamp)" stop-opacity="0"/></radialGradient>
+     <filter id="slr-lampGrain" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="1.4" numOctaves="2" seed="5" result="n"/><feColorMatrix in="n" type="saturate" values="0" result="g"/><feComponentTransfer in="g" result="g2"><feFuncA type="linear" slope="0" intercept=".22"/></feComponentTransfer><feComposite in="g2" in2="SourceGraphic" operator="in" result="gr"/><feBlend in="gr" in2="SourceGraphic" mode="overlay"/></filter>
      <radialGradient id="slr-glassG" cx=".38" cy=".32" r=".8"><stop offset="0" stop-color="#fff"/><stop offset=".45" style="stop-color:var(--lamp)"/><stop offset="1" style="stop-color:color-mix(in srgb,var(--lamp) 70%,#000)"/></radialGradient>
      <radialGradient id="slr-holeG"><stop offset="0" stop-color="#000"/><stop offset=".55" stop-color="#000" stop-opacity=".6"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
      <filter id="slr-soft" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="2.2"/></filter>
@@ -215,7 +216,7 @@ export function mount(root: HTMLElement, COPY: any, NIGHTL: string, DAYL: string
     r+=`<polygon id="slr-shaft" fill="var(--shaft)" style="transition:fill 1s" filter="url(#slr-softer)"/>`;
     r+=`<g clip-path="url(#slr-roomClip)"><rect id="slr-dark" x="-200" y="-300" width="1600" height="1500" mask="url(#slr-darkMask)"/><rect id="slr-fxGrain" x="100" y="-20" width="1000" height="900" filter="url(#slr-grain)" opacity=".16" pointer-events="none"/></g>`;
     r+=`<circle id="slr-glow" class="off" r="230" fill="url(#slr-glowG)"/>`;
-    r+=`<g id="slr-lamp" class="off"><g id="slr-lampIn"></g></g><g id="slr-selBox"></g>`;
+    r+=`<g id="slr-lamp" class="off"><g id="slr-lampIn" filter="url(#slr-lampGrain)"></g></g><g id="slr-selBox"></g>`;
     const byAnchor=Object.fromEntries(Object.entries(R_).map(([k,p])=>[p.anchor,k]));
     r+=Object.entries(ANCH).map(([a,h])=>{const [hx,hy]=P(...h.hot),k=byAnchor[a],right=hx<820;
       return `<g class="hot" data-k="${k}" data-id="hot:${a}" data-x="${f(hx)}" data-y="${f(hy)}" tabindex="0" role="button" aria-label="${h.label}: ${R_[k].name}" transform="translate(${f(hx)},${f(hy)})">
@@ -262,12 +263,22 @@ export function mount(root: HTMLElement, COPY: any, NIGHTL: string, DAYL: string
     const dP=([dx,dy,dz])=>[S*.866*(dx-dy),S*.5*(dx+dy)-S*dz];
     const PL={flat:{u:[1,0,0],v:[0,1,0],n:[0,0,1]},wall:{u:[0,1,0],v:[0,0,1],n:[1,0,0]}};
     const mat=(o,u,v,k)=>{const [ex,ey]=P(...o),a=dP(u),b=dP(v);return `matrix(${f(a[0]*k)},${f(a[1]*k)},${f(b[0]*k)},${f(b[1]*k)},${f(ex)},${f(ey)})`};
-    function setLamp(L){const {u,v,n}=PL[L.pl],o=L.o,R=L.R,th=L.th;let h='';
-      for(let i=0;i<=4;i++){const t=th*(1-i/4),oi=[o[0]-n[0]*t,o[1]-n[1]*t,o[2]-n[2]*t];
-        h+=`<path fill-rule="evenodd" class="${i<4?'lampSide':'glass'}" ${i<4?'':'fill="url(#slr-glassG)"'} d="${RING}" transform="${mat(oi,u,v,R)}"/>`}
-      h+=`<path d="M-.7,-.38 A.82,.82 0 0 1 -.1,-.8" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="2.2" stroke-linecap="round" vector-effect="non-scaling-stroke" transform="${mat(o,u,v,R)}"/>`;
+    // the lamp as it really is: a puffy ring of glass (not a cylinder) — stacked slices following its
+    // profile, round at the back and front, darker at the sides and lighter towards the glowing front
+    const PROF=[[0,.66,.2],[.06,.86,.2],[.14,.94,.2],[.24,.985,.2],[.36,1,.21],[.48,.985,.22],[.6,.95,.24],[.7,.9,.28],[.79,.83,.33],[.87,.74,.39],[.94,.64,.44],[1,.5,.47]];
+    const ringD=(ro,ri)=>`M${ro},0 A${ro},${ro} 0 1,0 -${ro},0 A${ro},${ro} 0 1,0 ${ro},0 Z M${ri},0 A${ri},${ri} 0 1,1 -${ri},0 A${ri},${ri} 0 1,1 ${ri},0 Z`;
+    function setLamp(L){const {u,v,n}=PL[L.pl],R=L.R,T=R*.62;
+      // the old front point minus the old thickness is where it touches the wall/table; it grows out from there
+      const surf=[L.o[0]-n[0]*L.th,L.o[1]-n[1]*L.th,L.o[2]-n[2]*L.th],o=[surf[0]+n[0]*T,surf[1]+n[1]*T,surf[2]+n[2]*T];let h='';
+      PROF.forEach(([t,ro,ri],i)=>{const d=T*t,oi=[surf[0]+n[0]*d,surf[1]+n[1]*d,surf[2]+n[2]*d],last=i===PROF.length-1;
+        const k=Math.round(52+38*t);
+        h+=last?`<path fill-rule="evenodd" class="glass" fill="url(#slr-glassG)" d="${ringD(ro,ri)}" transform="${mat(oi,u,v,R)}"/>`
+          :`<path fill-rule="evenodd" style="fill:color-mix(in srgb,var(--lamp) ${k}%,#6e5340);stroke:none" d="${ringD(ro,ri)}" transform="${mat(oi,u,v,R)}"/>`});
+      // a soft sheen and a rim light, as on glass
+      h+=`<path d="M-.62,-.3 A.7,.7 0 0 1 -.12,-.68" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="2.4" stroke-linecap="round" vector-effect="non-scaling-stroke" transform="${mat(o,u,v,R)}"/>`;
+      h+=`<path d="M.5,.34 A.62,.62 0 0 1 .1,.6" fill="none" stroke="#fff" stroke-opacity=".25" stroke-width="1.6" stroke-linecap="round" vector-effect="non-scaling-stroke" transform="${mat(o,u,v,R)}"/>`;
       $('lampIn').innerHTML=h;
-      const surf=[o[0]-n[0]*th+(L.pl==='wall'?-.1:0),o[1],o[2]-n[2]*th];
+      surf[0]+=(L.pl==='wall'?-.1:0);
       pool.innerHTML=`<circle r="1" fill="url(#slr-poolG)" transform="${mat(surf,u,v,R*(L.pool||(L.pl==='wall'?4.6:3.8)))}"/>`;
       applyLamp();
       const [cx,cy]=P(...o);glow.setAttribute('cx',f(cx));glow.setAttribute('cy',f(cy));maskLamp.setAttribute('cx',f(cx));maskLamp.setAttribute('cy',f(cy));}
@@ -347,7 +358,7 @@ export function mount(root: HTMLElement, COPY: any, NIGHTL: string, DAYL: string
       b.innerHTML=`<i></i><b>${R_[k].name}</b>`;b.addEventListener('click',()=>{go(k)});spots.appendChild(b)});
     function placeSpots(){const st=spots.getBoundingClientRect();
       spots.querySelectorAll('.spot').forEach(b=>{const h=root.querySelector(`.hot[data-id="${b.dataset.for}"] .hit`);if(!h)return;const r=h.getBoundingClientRect();
-        const x=r.left+r.width/2-st.left,y=r.top+r.height/2-st.top;b.style.left=x+'px';b.style.top=y+'px';b.classList.toggle('left',x>st.width*.72)})}
+        const sc=st.width/(spots.offsetWidth||st.width)||1,x=(r.left+r.width/2-st.left)/sc,y=(r.top+r.height/2-st.top)/sc;b.style.left=x+'px';b.style.top=y+'px';b.classList.toggle('left',x*sc>st.width*.72)})}
     placeSpots();try{const ro=new ResizeObserver(placeSpots);ro.observe(svg);cleanups.push(()=>ro.disconnect())}catch(e){}window.addEventListener('resize',placeSpots);
     /* ---------- day / night follows the site switch ---------- */
     function setMode(m){root.dataset.mode=m;$('modeLbl').textContent=m==='day'?DAYL:NIGHTL;$('skyDay').style.opacity=m==='day'?1:0;tween(m==='day'?0:1)}

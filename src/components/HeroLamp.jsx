@@ -1,6 +1,7 @@
 // The lamp leaves the hero photo: as you scroll, a 3D lamp takes over from the one in the picture
 // (same place, same size, same amber glass), lifts off and floats into 01 Feel, where it hangs in
-// the middle, turning gently, and switches on as the words light up. It bows out with the images.
+// the middle, turning gently, and switches on as the words light up. Then it drifts down into the
+// room as it builds, becomes a point of light and hands over to the room's touch points.
 import { useEffect, useRef } from "react"
 import { loadThree, makeRealLamp } from "./SilenaLamp3D.tsx"
 
@@ -45,12 +46,26 @@ export default function HeroLamp() {
             let x = px + (tx - px) * lift, y = py + (ty - py) * (1 - Math.pow(1 - lift, 2)), r = pr + (tr - pr) * lift
             // it appears exactly over the photo's lamp, then leaves the picture behind
             let alpha = cl((h - 0.02) / 0.1)
-            // at the end of Feel it goes back to being a small light, and fades out with the images
-            const bow = ease(cl((f - 0.84) / 0.14))
-            r *= 1 - 0.35 * bow
-            y -= H * 0.08 * bow
-            alpha *= 1 - bow
-            if (fr.bottom < 0) alpha = 0
+            // 3. into the room: as the room comes up and builds itself, the lamp drifts down into it,
+            // shrinking to a point of light in the middle of the floor; when the room is built, that
+            // light becomes its four touch points
+            const host = document.querySelector(".slr-host"), svg = host && host.querySelector(".slr svg")
+            if (host && svg) {
+                const ht = host.getBoundingClientRect().top, sr = svg.getBoundingClientRect()
+                const pinned = W > 860
+                // the room's own build progress (the same measure the room uses)
+                const q = pinned ? cl((H * 0.45 - ht) / (H * 0.45 + 2.7 * H * 0.85)) : cl((H * 0.95 - sr.top) / (H * 0.8))
+                const m = pinned ? cl((H - ht) / (H + 0.55 * (H * 0.45 + 2.7 * H * 0.85))) : cl(q / 0.55)
+                if (m > 0) {
+                    // the middle of the floor, P(5,5,0), in the drawing's viewBox (168 14 864 812)
+                    const kk = Math.min(sr.width / 864, sr.height / 812), fx = sr.left + (sr.width - 864 * kk) / 2 + (600 - 168) * kk, fy = sr.top + (sr.height - 812 * kk) / 2 + (580 - 14) * kk
+                    const e = ease(m), ey = 1 - Math.pow(1 - m, 3)
+                    x = x + (fx - x) * e
+                    y = y + (fy - y) * ey
+                    r = r + (9 - r) * e
+                    alpha *= 1 - cl((q - 0.56) / 0.1)
+                }
+            }
             el.style.opacity = alpha.toFixed(3)
             el.style.visibility = alpha > 0.002 ? "visible" : "hidden"
             if (lamp) lamp.pause(alpha <= 0.002)
@@ -58,6 +73,8 @@ export default function HeroLamp() {
             el.style.transform = `translate(${(x - (S * k) / 2).toFixed(1)}px,${(y - (S * k) / 2).toFixed(1)}px) scale(${k.toFixed(4)})`
             // lit as in the photo, dims a little on the way, then warms up again with the words
             if (lamp) lamp.power(h < 0.5 ? 1 - 0.6 * cl(h / 0.5) : 0.4 + 0.6 * cl((f - 0.05) / 0.4))
+            // as it becomes a point of light its glow takes over
+            el.style.filter = r < 40 ? `saturate(0.92) contrast(0.92) blur(0.4px) drop-shadow(0 0 ${(14 * (1 - r / 40)).toFixed(1)}px rgba(255,200,140,.9))` : ""
         }
         raf = requestAnimationFrame(tick)
         return () => {
