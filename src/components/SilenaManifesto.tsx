@@ -79,7 +79,8 @@ export default function SilenaManifesto(props) {
 
     const words = text.split(/\s+/).filter(Boolean)
 
-    // a design-tool selection box that jumps from one image to the next as each one arrives
+    // a soft warm light that drifts from one image to the next as each one arrives, as if the lamp
+    // were looking at them
     const boxes = useRef<(HTMLDivElement | null)[]>([])
     const pinRef = useRef<HTMLDivElement>(null)
     const frameRef = useRef<HTMLDivElement>(null)
@@ -102,9 +103,9 @@ export default function SilenaManifesto(props) {
             if (!cur) cur = { ...t }
             // it glides over to the new image, a little behind it, like a cursor would
             for (const k of ["x", "y", "w", "h"]) cur[k] += (t[k] - cur[k]) * 0.16
-            fr.style.transform = `translate(${cur.x - 6}px,${cur.y - 6}px)`
-            fr.style.width = cur.w + 12 + "px"
-            fr.style.height = cur.h + 12 + "px"
+            fr.style.transform = `translate(${cur.x - 60}px,${cur.y - 60}px)`
+            fr.style.width = cur.w + 120 + "px"
+            fr.style.height = cur.h + 120 + "px"
             if (labelRef.current) labelRef.current.textContent = `Feel · 0${act + 1} / 0${IMAGES.length}`
         }
         raf = requestAnimationFrame(tick)

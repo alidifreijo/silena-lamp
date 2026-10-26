@@ -159,29 +159,21 @@ html.lenis, html.lenis body { height: auto; }
 .rail-seg.on .rail-n { opacity: 1; transform: none; }
 @media (max-width: 640px) { .rail { right: 6px; gap: 6px; } .rail-seg { height: 34px; } .rail-n { display: none; } }
 
-/* ---------- 01 Feel: the selection box over the images ---------- */
+/* ---------- 01 Feel: a soft light that drifts from image to image as each one arrives ---------- */
 .sel-frame {
-    position: absolute; left: 0; top: 0; z-index: 2; pointer-events: none; opacity: 0;
-    border: 1px dashed color-mix(in srgb, var(--ink) 70%, transparent);
+    position: absolute; left: 0; top: 0; z-index: 0; pointer-events: none; opacity: 0;
+    border-radius: 28px;
+    background: radial-gradient(closest-side, rgba(255, 196, 128, 0.32), rgba(255, 176, 96, 0.12) 60%, rgba(255, 176, 96, 0) 100%);
+    filter: blur(18px);
 }
-.sel-frame i {
-    position: absolute; width: 8px; height: 8px; background: var(--bg);
-    border: 1px solid #f0892a; box-sizing: border-box;
-}
-.sel-frame .tl { left: -4px; top: -4px; } .sel-frame .tr { right: -4px; top: -4px; }
-.sel-frame .bl { left: -4px; bottom: -4px; } .sel-frame .br { right: -4px; bottom: -4px; }
-.sel-label {
-    position: absolute; left: -1px; bottom: calc(100% + 6px); white-space: nowrap;
-    font-size: 10px; letter-spacing: 0.08em; padding: 3px 6px; border-radius: 3px;
-    background: #f0892a; color: #261e13;
-}
+.sel-frame i, .sel-label { display: none; }
 
 /* ---------- the lamp that leaves the hero photo ---------- */
 .hero-lamp {
     position: fixed; left: 0; top: 0; z-index: 4; pointer-events: none;
     transform-origin: 0 0; visibility: hidden; opacity: 0; will-change: transform, opacity;
     /* the hero illustration's softness: less contrast, a touch of blur */
-    filter: saturate(0.92) contrast(0.92) blur(0.4px);
+    filter: saturate(0.9) contrast(0.88) blur(0.6px);
 }
 .light-wash {
     position: fixed; inset: 0; z-index: 4; pointer-events: none; visibility: hidden; opacity: 0;

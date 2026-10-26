@@ -39,7 +39,7 @@ export default function HeroLamp() {
             const px = hr.left + (hr.width - dw) * posX + PHOTO.u * dw, py = hr.top + (hr.height - dh) * posY + PHOTO.v * dh, pr = PHOTO.r * dw
             // 2. its place in 01 Feel: low in the middle, like a sun below the words, rising a little
             // as they light up (never behind the text, so it stays readable)
-            const tr = Math.min(H * 0.24, W * (phone ? 0.3 : 0.18))
+            const tr = Math.min(H * 0.19, W * (phone ? 0.26 : 0.15))
             const tx = W * 0.5, ty = H + tr * 0.25 - tr * 0.55 * ease(cl((-fr.top / Math.max(1, fr.height - H) - 0.05) / 0.45))
             // progress: h through the hero leaving, f through the pinned Feel section
             const h = cl(-hr.top / Math.max(1, hr.height)), f = cl(-fr.top / Math.max(1, fr.height - H))
@@ -54,11 +54,11 @@ export default function HeroLamp() {
             const host = document.querySelector(".slr-host")
             if (host) {
                 const ht = host.getBoundingClientRect().top
-                const m = cl((H - ht) / (H * 1.5))
+                const m = cl((H - ht) / (H * 1.1))
                 if (m > 0) {
-                    wash = Math.sin(Math.PI * cl(m / 0.9))
-                    wr = tr * 1.5 + Math.hypot(W, H) * 1.1 * ease(cl(m / 0.55))
-                    alpha *= 1 - ease(cl((m - 0.2) / 0.3))
+                    wash = 0.85 * Math.sin(Math.PI * cl(m / 0.75))
+                    wr = tr * 1.5 + Math.hypot(W, H) * 1.1 * ease(cl(m / 0.45))
+                    alpha *= 1 - ease(cl((m - 0.15) / 0.25))
                     y -= tr * 0.25 * ease(cl(m / 0.4))
                 }
             }

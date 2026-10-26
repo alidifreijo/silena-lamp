@@ -112,7 +112,7 @@ export function mount(root: HTMLElement, COPY: any, NIGHTL: string, DAYL: string
     ];
     const R_={
      reader:{anchor:'shelf',name:'The reader',line:'An armchair by the window, a coffee still steaming, one more chapter.',
-      lamp:'#FFB066',acc:'#C99A5B',L:{o:[6.6,2,1.03],pl:'flat',R:.5,th:.13,pool:5.6},read:'<b>2200K</b> · amber · lying on the side table',
+      lamp:'#FFB066',acc:'#C99A5B',L:{o:[6.6,2,1.03],pl:'flat',R:.54,th:.13,pool:5.6},read:'<b>2200K</b> · amber · lying on the side table',
       items:[
        [0,blob(4.8,2.7,0,1.9,1.7,2,'rug')+blob(4.8,2.7,0,1.9,1.7,2,'pat dots')],
        [1,line([2.0,.07,5.78],[7.5,.07,5.78],'mul thin')+curtain(2.15,3.35,5.75,.25,1)+curtain(6.25,7.45,5.75,.25,3)],
@@ -124,7 +124,7 @@ export function mount(root: HTMLElement, COPY: any, NIGHTL: string, DAYL: string
        [2,cup(5.6,1.75,1.31)],
        [2,box(8.3,1.8,0,.9,.7,.15,'m-red')+box(8.35,1.85,.15,.8,.6,.13,'m-blue')+box(8.28,1.82,.28,.85,.65,.14,'m-mustard')]]},
      storyteller:{anchor:'sofa',name:'The storyteller',line:'A big sofa, walls full of pictures, notes everywhere and the dog asleep at your feet.',
-      lamp:'#FFD199',acc:'#C47A4E',L:{o:[.14,6.9,3.6],pl:'wall',R:.55,th:.14},read:'<b>2700K</b> · warm white · on the wall, among the pictures',
+      lamp:'#FFD199',acc:'#C47A4E',L:{o:[.14,6.9,3.6],pl:'wall',R:.54,th:.14},read:'<b>2700K</b> · warm white · on the wall, among the pictures',
       items:[
        [0,blob(3.7,7.2,0,1.25,2.2,5,'rug')+blob(3.7,7.2,0,1.25,2.2,5,'pat stripe')],
        [1,art(4.8,6.0,2.9,4.4)+qx(0,5.0,5.8,4.65,5.5,'fR m-mustard')+qx(0,6.4,7.4,4.5,5.2,'fR m-blue')+qx(0,6.55,7.25,4.62,5.08,'fR m-cream')+qx(0,7.75,8.9,3.0,4.0,'fR m-red')+qx(0,7.88,8.77,3.12,3.88,'fR m-cream')+art(7.8,8.6,4.25,5.4)+qx(0,9.0,9.7,2.8,4.2,'fR m-olive')+qx(0,3.7,4.4,3.3,4.1,'fR m-pink')],
@@ -134,7 +134,7 @@ export function mount(root: HTMLElement, COPY: any, NIGHTL: string, DAYL: string
           [4,sheet(6.2,5.6,1.52,.3,.42,.3)+sheet(7.2,5.5,1.52,.3,.42,-.2)+sheet(7.9,6.6,1.52,.3,.42,.6)+sheet(6.8,6.6,1.52,.3,.42,-.4)+sheet(7.3,7.5,1.52,.3,.42,.2)+box(5.6,6.1,1.52,.55,.42,.08,'m-blue')+line([6.5,6.3,1.53],[6.95,6.1,1.53],'mul thin')+cyl(8.0,7.3,1.52,.13,.18,'m-mustard')],
        [5,cyl(3.8,8.1,0,.8,.18,'m-blue')+dog(3.8,8.1,.18)]]},
      host:{anchor:'table',name:'The host',line:'A long table set for everyone. Flowers, too many cups, nobody leaving.',
-      lamp:'#FFCF8F',acc:'#D08A3A',L:{o:[6.8,6.5,1.66],pl:'flat',R:.5,th:.13},read:'<b>3000K</b> · honey white · lying in the middle of the table',
+      lamp:'#FFCF8F',acc:'#D08A3A',L:{o:[6.8,6.5,1.66],pl:'flat',R:.54,th:.13},read:'<b>3000K</b> · honey white · lying in the middle of the table',
       items:[
        [0,(()=>{let o=fq(3.9,3.6,9.7,9.4,0,'rug');for(let i=0;i<7;i++)for(let j=0;j<7;j++)if((i+j)%2)o+=fq(3.9+i*.8286,3.6+j*.8286,4.7286+i*.8286,4.4286+j*.8286,0,'chk');return o})()],
        [3,chair(6.8,4.4,'y-','m-red')+chair(4.7,6.5,'x-','m-blue')],
@@ -142,7 +142,7 @@ export function mount(root: HTMLElement, COPY: any, NIGHTL: string, DAYL: string
        [4,cyl(8.25,6.25,1.52,.08,.22,'m-glass')+cyl(7.65,7.75,1.52,.08,.22,'m-glass')+cyl(5.75,5.65,1.52,.08,.22,'m-glass')+cyl(7.7,5.25,1.52,.08,.22,'m-glass')+cyl(6.25,5.6,1.52,.18,.42,'m-blue')+flowers(6.25,5.6,1.52,.42,1.05)],
        [5,chair(8.9,6.5,'x+','m-mustard')+chair(6.8,8.6,'y+','m-olive')]]},
      dreamer:{anchor:'vinyl',name:'The dreamer',line:'Put a record on. Low light, two glasses, nowhere to be.',
-      lamp:'#B9A6E0',acc:'#9A88C2',L:{o:[.14,2.4,4.2],pl:'wall',R:.5,th:.14},read:'<b>Lavender</b> · on the wall, above the record player',
+      lamp:'#B9A6E0',acc:'#9A88C2',L:{o:[.14,2.4,4.2],pl:'wall',R:.54,th:.14},read:'<b>Lavender</b> · on the wall, above the record player',
       items:[
        [0,blob(3.6,3.8,0,1.9,1.8,4,'rug')+blob(3.6,3.8,0,1.9,1.8,4,'pat stripe')+blob(3.6,3.8,0,1.4,1.3,4,'ln dash')],
        [1,box(.1,.1,0,.6,.6,1.7,'m-ink')+(()=>{const [a,b]=P(.4,.7,1.15),[c,d]=P(.4,.7,.5);return `<ellipse class="spk" cx="${f(a)}" cy="${f(b)}" rx="7" ry="9"/><ellipse class="spk" cx="${f(c)}" cy="${f(d)}" rx="10" ry="13"/>`})()],
@@ -178,16 +178,17 @@ export function mount(root: HTMLElement, COPY: any, NIGHTL: string, DAYL: string
      <pattern id="slr-pFlower" width="20" height="22" patternUnits="userSpaceOnUse"><g style="fill:var(--acc)" opacity=".75"><circle cx="5" cy="3.6" r="1.7"/><circle cx="5" cy="8.4" r="1.7"/><circle cx="2.6" cy="6" r="1.7"/><circle cx="7.4" cy="6" r="1.7"/></g><circle cx="5" cy="6" r="1.3" fill="#E2AE45"/><circle cx="15" cy="17" r="1.4" fill="#6E7C4A" opacity=".6"/></pattern>
      <filter id="slr-paint" x="-2%" y="-2%" width="104%" height="104%" color-interpolation-filters="sRGB">
       <feTurbulence type="fractalNoise" baseFrequency=".0055" numOctaves="1" seed="7" result="wob"/>
-      <feDisplacementMap id="slr-fxWob" in="SourceGraphic" in2="wob" scale="7" xChannelSelector="R" yChannelSelector="G" result="w"/>
+      <feDisplacementMap id="slr-fxWob" in="SourceGraphic" in2="wob" scale="9" xChannelSelector="R" yChannelSelector="G" result="w0"/>
+      <feGaussianBlur in="w0" stdDeviation=".55" result="w"/>
       <feTurbulence type="fractalNoise" baseFrequency=".55" numOctaves="1" seed="12" result="c"/>
       <feColorMatrix in="c" type="matrix" values=".33 .33 .33 0 0  .33 .33 .33 0 0  .33 .33 .33 0 0  0 0 0 0 1" result="cg"/>
-      <feComposite id="slr-fxCanvas" in="w" in2="cg" operator="arithmetic" k1="0" k2="1" k3=".11" k4="-.055" result="p2"/>
+      <feComposite id="slr-fxCanvas" in="w" in2="cg" operator="arithmetic" k1="0" k2="1" k3=".17" k4="-.085" result="p2"/>
       <feTurbulence type="fractalNoise" baseFrequency=".03" numOctaves="2" seed="4" result="m"/>
       <feColorMatrix in="m" type="matrix" values=".33 .33 .33 0 0  .33 .33 .33 0 0  .33 .33 .33 0 0  0 0 0 0 1" result="mg"/>
-      <feComposite in="p2" in2="mg" operator="arithmetic" k1="0" k2="1" k3=".09" k4="-.045" result="p3"/>
+      <feComposite in="p2" in2="mg" operator="arithmetic" k1="0" k2="1" k3=".15" k4="-.075" result="p3"/>
       <feTurbulence type="fractalNoise" baseFrequency=".035 .6" numOctaves="2" seed="9" result="st"/>
       <feColorMatrix in="st" type="matrix" values=".33 .33 .33 0 0  .33 .33 .33 0 0  .33 .33 .33 0 0  0 0 0 0 1" result="sg"/>
-      <feComposite in="p3" in2="sg" operator="arithmetic" k1="0" k2="1" k3=".07" k4="-.035" result="p4"/>
+      <feComposite in="p3" in2="sg" operator="arithmetic" k1="0" k2="1" k3=".12" k4="-.06" result="p4"/>
       <feComposite in="p4" in2="w" operator="in"/>
      </filter>
      <filter id="slr-waveBlur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.4"/></filter>
@@ -338,7 +339,7 @@ export function mount(root: HTMLElement, COPY: any, NIGHTL: string, DAYL: string
       colors:{wood:'#BC8659',walnut:'#7E5337',cream:'#F2E9D7',olive:'#6E7C4A',green:'#3F6044',red:'#D45B42',mustard:'#E2AE45',blue:'#5C87B3',ink:'#2E2A26',terra:'#C7744E',pink:'#E8B6A8',glass:'#C9DAD5',leaf:'#456142',wallA:'#E2D9CC',wallB:'#D3C9BB',floor:'#EAE2D6',bgD:'#D8CFC2',bgN:'#16110C'},
       personas:Object.fromEntries(Object.entries(R_).map(([k,p])=>[k,{lamp:p.lamp,acc:p.acc}]))};
     /* look chosen by Ali (22 Oct) */
-    Object.assign(LOOK_DEF,{paint:0,brush:0,canvas:.2,grain:.19,wobble:6.5,round:9.6,hiT:95,shR:62,darkN:.65,glowN:0,glowD:0,pool:.17,sunK:1.25,sofaBack:'one'});
+    Object.assign(LOOK_DEF,{paint:0,brush:0,canvas:.3,grain:.27,wobble:8.5,round:9.6,hiT:95,shR:62,darkN:.65,glowN:0,glowD:0,pool:.17,sunK:1.25,sofaBack:'one'});
     Object.assign(LOOK_DEF.colors,{wood:'#5f3a1c',olive:'#72813b',green:'#29655b',wallA:'#ecdac1',wallB:'#d7c7b2',floor:'#ac9777',bgN:'#322415'});
     LOOK_DEF.personas.storyteller.lamp='#dc9d50';
     let look=clone(LOOK_DEF);
