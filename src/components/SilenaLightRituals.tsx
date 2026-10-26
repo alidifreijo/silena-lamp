@@ -292,7 +292,11 @@ vec3 glow=mix(uCore,uRim,smoothstep(.25,1.,fr));float r=length(vP.xz);glow*=mix(
 vec3 S1=normalize(vec3(-.5,.8,.6));float s1=max(dot(N,S1),0.);
 vec3 g2=mix(uCore,uRim,smoothstep(.25,1.,fr))*(1.-.25*smoothstep(0.,.9,fr));g2*=mix(.78,1.,smoothstep(.17,.45,r))*mix(1.,.9,smoothstep(.6,1.,r))*(.9+.16*s1);
 g2+=vec3(1.)*pow(max(dot(N,normalize(S1+V)),0.),14.)*.08;glow=mix(glow,g2,uShop);
-gl_FragColor=vec4(mix(off,glow,uOn),uAlpha);}`,
+vec3 col=mix(off,glow,uOn);
+vec3 Rf=reflect(-V,N);float Fr=.04+.96*pow(fr,5.);
+float e=smoothstep(.45,.7,Rf.x)*smoothstep(-.55,.1,Rf.y)*(1.-smoothstep(.55,.9,Rf.y))+smoothstep(-.4,-.68,Rf.x)*smoothstep(-.35,.3,Rf.y)*(1.-smoothstep(.6,.95,Rf.y))*.65+smoothstep(.62,.92,Rf.y)*.75;
+col+=(vec3(e)+.06)*mix(.18,1.,Fr)*.22*uShop+vec3(1.)*pow(max(dot(Rf,normalize(vec3(.45,.55,.7))),0.),160.)*.5*uShop;
+gl_FragColor=vec4(col,uAlpha);}`,
         })
         const grp = new THREE.Group(), shade = new THREE.Mesh(geo, glass)
         // the same shape as a wire drawing: profile lines (meridians) and rings (parallels)
@@ -441,7 +445,7 @@ gl_FragColor=vec4(mix(off,glow,uOn),uAlpha);}`,
 
     /* ---------- hand-over to the shop: the room dims into the page, the lamp leaves the wall,
        turns to face you and settles exactly where the shop's 3D lamp is ---------- */
-    const SHOP_LAMP = { tint: "#EEEAE3", core: "#FBF0DD", rim: "#E9CBA0" }
+    const SHOP_LAMP = { tint: "#ECE8E1", core: "#FFF4E4", rim: "#F0D3AE" }
     const HOLD_COS = 0.8, HOLD_SIN = 0.6
     function shopTarget(out) {
         const st = document.querySelector(".sls-stage"), sec2 = shopSec
@@ -831,7 +835,8 @@ gl_FragColor=vec4(mix(off,glow,uOn),uAlpha);}`,
             eb.style.opacity = String(1 - bgK)
             track.style.opacity = String(1 - bgK)
             // the painted grain stays on the lamp until it settles into the shop
-            grain.style.opacity = String(0.22 * (out > 0 ? 1 - ease(cl((out - 0.6) / 0.3)) : 1))
+            // (some of it stays to the very end: the shop's lamp picks up the same grain and lets it go)
+            grain.style.opacity = String(0.22 * (out > 0 ? 1 - 0.6 * ease(cl((out - 0.6) / 0.3)) : 1))
         }
         // the very end: this screen fades away over the shop, which is already in place below
         pin.style.opacity = String(1 - ease(cl((out - 0.9) / 0.1)))

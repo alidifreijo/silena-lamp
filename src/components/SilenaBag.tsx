@@ -16,8 +16,8 @@ import { useSilenaMode } from "./useSilenaMode.js"
 export const BAG_KEY = "silena-bag-v1"
 // glass colours: tint = switched off, core/rim = lit from inside (VARMBLIXT white and amber)
 export const FINISHES = [
-    { id: "white", name: "White", price: 59.99, tint: "#EEEAE3", core: "#FBF0DD", rim: "#E9CBA0", sw: "radial-gradient(circle at 40% 35%, #ffffff, #F1ECE4 60%, #D9D1C4)" },
-    { id: "amber", name: "Amber", price: 49.99, tint: "#E2742A", core: "#FFD7A0", rim: "#E3651B", sw: "radial-gradient(circle at 40% 35%, #FFC98A, #E87A2C 60%, #B4521C)" },
+    { id: "white", name: "White", price: 59.99, tint: "#ECE8E1", core: "#FFF4E4", rim: "#F0D3AE", sw: "radial-gradient(circle at 40% 35%, #ffffff, #F1ECE4 60%, #D9D1C4)" },
+    { id: "amber", name: "Amber", price: 49.99, tint: "#E9782E", core: "#FFC27A", rim: "#E2600F", sw: "radial-gradient(circle at 40% 35%, #FFC98A, #E87A2C 60%, #B4521C)" },
 ]
 export const swatch = (f) => f.sw
 export const eur = (n: number) => "€" + n.toLocaleString("en-IE", { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 })

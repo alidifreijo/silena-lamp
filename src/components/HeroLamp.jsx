@@ -3,11 +3,12 @@
 // the middle, turning gently, and switches on as the words light up. It bows out with the images.
 import { useEffect, useRef } from "react"
 import { loadThree, makeRealLamp } from "./SilenaLamp3D.tsx"
-import { FINISHES } from "./SilenaBag.tsx"
 
 // where the lamp is in the hero photo (both photos share the framing): centre and radius,
 // as fractions of the image width/height
-const PHOTO = { aspect: 1280 / 832, u: 0.403, v: 0.2, r: 0.0586 }
+const PHOTO = { aspect: 1280 / 832, u: 0.403, v: 0.214, r: 0.06 }
+// the amber of the photo: deeper and more saturated than the shop's swatch
+const PHOTO_GLASS = { tint: "#E2742A", core: "#FFB04A", rim: "#D85A12" }
 const LAMP_FILL = 0.28 // the lamp's radius as a fraction of its canvas (camera fov 24, distance 8.4)
 const S = 760 // canvas size in CSS px (scaled with a transform)
 const cl = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v))
@@ -20,8 +21,8 @@ export default function HeroLamp() {
         let alive = true, lamp = null, raf = 0
         loadThree().then((THREE) => {
             if (!alive || !cv.current) return
-            lamp = makeRealLamp(THREE, cv.current, { mount: "wall", drag: false, cable: false, on: 0, onSpeed: 0.08, ratio: Math.min(window.devicePixelRatio || 1, 1.5) })
-            lamp.colors(FINISHES[1])
+            lamp = makeRealLamp(THREE, cv.current, { mount: "wall", drag: false, cable: false, paint: 1, on: 0, onSpeed: 0.08, ratio: Math.min(window.devicePixelRatio || 1, 1.5) })
+            lamp.colors(PHOTO_GLASS)
         })
         const el = cv.current
         const tick = () => {

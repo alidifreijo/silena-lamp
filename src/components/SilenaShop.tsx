@@ -101,19 +101,39 @@ export default function SilenaShop(props) {
         loadThree()
             .then((THREE) => {
                 if (!alive || !canvas.current) return
-                lamp.current = makeRealLamp(THREE, canvas.current, { mount })
+                lamp.current = makeRealLamp(THREE, canvas.current, { mount, paint: 0.06 })
                 lamp.current.colors(fin)
                 // Light Rituals lands its lamp right here: hold still, facing you, until it has
                 const rit = document.querySelector(".slx")
-                if (rit && !landed && rit.getBoundingClientRect().bottom > window.innerHeight) lamp.current.hold()
+                if (rit && !landed && rit.getBoundingClientRect().bottom > window.innerHeight) {
+                    lamp.current.hold()
+                    lamp.current.paint(0.6)
+                }
             })
             .catch(() => {})
-        let landed = false
+        let landed = false, praf = 0
+        // it arrives with some of Light Rituals' painted grain and clears into glass over ~2.5 s
+        const clearPaint = (from) => {
+            cancelAnimationFrame(praf)
+            const t0 = performance.now()
+            const step = (t) => {
+                const k = Math.min(1, (t - t0) / 2600), e = 1 - Math.pow(1 - k, 3)
+                lamp.current?.paint(from + (0.06 - from) * e)
+                if (k < 1) praf = requestAnimationFrame(step)
+            }
+            praf = requestAnimationFrame(step)
+        }
         const onLanded = (e) => {
             landed = !!e.detail
             if (!lamp.current) return
-            if (landed) lamp.current.release()
-            else lamp.current.hold()
+            if (landed) {
+                lamp.current.release()
+                clearPaint(0.6)
+            } else {
+                cancelAnimationFrame(praf)
+                lamp.current.hold()
+                lamp.current.paint(0.6)
+            }
         }
         window.addEventListener("silena-lamp-landed", onLanded)
         return () => {

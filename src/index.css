@@ -180,4 +180,6 @@ html.lenis, html.lenis body { height: auto; }
 .hero-lamp {
     position: fixed; left: 0; top: 0; z-index: 1; pointer-events: none;
     transform-origin: 0 0; visibility: hidden; opacity: 0; will-change: transform, opacity;
+    /* the hero illustration's softness: less contrast, a touch of blur */
+    filter: saturate(0.92) contrast(0.92) blur(0.4px);
 }

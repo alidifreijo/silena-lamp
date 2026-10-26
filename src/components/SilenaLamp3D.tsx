@@ -15,20 +15,37 @@ function buildLamp(THREE) {
     const geo = new THREE.LatheGeometry(pts, 180)
     geo.computeVertexNormals()
     geo.translate(0, -0.4, 0)
-    const U = { uTint: { value: new THREE.Color() }, uCore: { value: new THREE.Color() }, uRim: { value: new THREE.Color() }, uOn: { value: 1 }, uAlpha: { value: 1 } }
+    const U = { uTint: { value: new THREE.Color() }, uCore: { value: new THREE.Color() }, uRim: { value: new THREE.Color() }, uOn: { value: 1 }, uAlpha: { value: 1 }, uPaint: { value: 0 } }
+    // glass, not plastic: little diffuse shading; the glass's colour and depth (milky in the middle,
+    // denser at the thick rim), glossy reflections of a soft studio (two tall softboxes and a top
+    // light) that get stronger at grazing angles, and a sharp glint. Lit from inside, the glow takes
+    // over and the reflections soften. uPaint adds the illustration's grain and a softer, warmer tone.
     const glass = new THREE.ShaderMaterial({
         uniforms: U,
         side: THREE.DoubleSide,
         transparent: true,
         vertexShader: `varying vec3 vN;varying vec3 vV;varying vec3 vP;void main(){vec4 mv=modelViewMatrix*vec4(position,1.);vN=normalize(normalMatrix*normal);vV=normalize(-mv.xyz);vP=position;gl_Position=projectionMatrix*mv;}`,
-        fragmentShader: `uniform vec3 uTint;uniform vec3 uCore;uniform vec3 uRim;uniform float uOn;uniform float uAlpha;varying vec3 vN;varying vec3 vV;varying vec3 vP;
-void main(){vec3 N=normalize(vN),V=normalize(vV);float ndv=max(dot(N,V),0.);float fr=1.-ndv;
-vec3 L1=normalize(vec3(-.5,.8,.6)),L2=normalize(vec3(.7,.2,.5));float d1=max(dot(N,L1),0.),d2=max(dot(N,L2),0.);
-vec3 off=uTint*(.42+.5*d1+.18*d2)+vec3(1.)*pow(max(dot(N,normalize(L1+V)),0.),12.)*.16;
-float thick=smoothstep(.0,.9,fr);vec3 glow=mix(uCore,uRim,smoothstep(.25,1.,fr));glow*=1.0-.25*thick;
-float r=length(vP.xz);glow*=mix(.78,1.,smoothstep(.17,.45,r))*mix(1.,.9,smoothstep(.6,1.,r));glow*=.9+.16*d1;
-vec3 on=glow+vec3(1.)*pow(max(dot(N,normalize(L1+V)),0.),14.)*.08;vec3 col=mix(off,on,uOn);
-float g=fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453);col+=(g-.5)*.025;gl_FragColor=vec4(col,uAlpha);}`,
+        fragmentShader: `uniform vec3 uTint;uniform vec3 uCore;uniform vec3 uRim;uniform float uOn;uniform float uAlpha;uniform float uPaint;varying vec3 vN;varying vec3 vV;varying vec3 vP;
+float h(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
+void main(){vec3 N=normalize(vN),V=normalize(vV);if(!gl_FrontFacing)N=-N;float ndv=max(dot(N,V),0.);float fr=1.-ndv;
+float F=.04+.96*pow(fr,5.);vec3 R=reflect(-V,N);
+float sb1=smoothstep(.2,.8,R.x)*smoothstep(-.7,.2,R.y)*(1.-smoothstep(.45,1.,R.y));
+float sb2=smoothstep(-.15,-.8,R.x)*smoothstep(-.5,.4,R.y)*(1.-smoothstep(.5,1.,R.y))*.6;
+float tp=smoothstep(.45,1.,R.y)*.6;
+vec3 env=vec3(1.,.99,.97)*(sb1+sb2+tp)+vec3(.07,.06,.05);
+vec3 L1=normalize(vec3(-.5,.8,.6));float d1=max(dot(N,L1),0.);
+float r=length(vP.xz);float thick=smoothstep(.25,1.,fr);
+vec3 off=uTint*(.7+.12*d1)*mix(1.,.62,thick)+uTint*uTint*.16*(1.-thick)+vec3(1.)*pow(fr,2.5)*.1;
+vec3 glow=mix(uCore,uRim,smoothstep(.25,1.,fr))*(1.-.22*thick);
+glow*=mix(.78,1.,smoothstep(.17,.45,r))*mix(1.,.9,smoothstep(.6,1.,r))*(.94+.08*d1);
+vec3 col=mix(off,glow,uOn);
+col+=env*mix(.12,.7,F)*mix(.42,.18,uOn);
+col+=vec3(1.)*pow(max(dot(R,normalize(vec3(.45,.55,.7))),0.),36.)*mix(.32,.18,uOn);
+col+=vec3(1.)*pow(max(dot(R,normalize(vec3(-.6,.3,.75))),0.),18.)*.07;
+float g=h(gl_FragCoord.xy);
+col=mix(col,col*vec3(1.03,.98,.9)*.94+.025,uPaint*.6);
+col+=(g-.5)*(.02+.14*uPaint);
+gl_FragColor=vec4(col,uAlpha);}`,
     })
     const shade = new THREE.Mesh(geo, glass)
     // the same shape as a wire drawing (profile lines and rings), for when the lamp is still "being built"
@@ -101,6 +118,9 @@ float g=fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453);col+=(g
             if (ink) wireM.color.copy(col(ink))
             wire.visible = t < 0.995
         },
+        paint(v) {
+            U.uPaint.value = v
+        },
         colors(f) {
             U.uTint.value.copy(col(f.tint))
             U.uCore.value.copy(col(f.core))
@@ -132,6 +152,7 @@ export function makeRealLamp(THREE, cv: HTMLCanvasElement, opts: any = {}) {
     cam.position.set(0, 0, opts.dist || 8.4)
     const L = buildLamp(THREE)
     if (opts.cable === false) L.cable.visible = false
+    if (opts.paint) L.paint(opts.paint)
     scene.add(L.rig)
     const rig = L.rig
     let target = POSE[opts.mount || "wall"], cur = { ...target }, yaw = 0, yawT = 0, base0 = 0, amp = 1, vel = 0, tilt = 0, tiltT = 0
@@ -224,6 +245,8 @@ export function makeRealLamp(THREE, cv: HTMLCanvasElement, opts: any = {}) {
         colors(f) { L.colors(f); draw() },
         mount(m) { target = POSE[m] || POSE.wall; base0 = Math.round(base0 / (2 * Math.PI)) * 2 * Math.PI; vel = 0; kick() },
         power(v) { onT = v; kick() },
+        // how much of the illustration's grain and tone it carries (0 = clean glass)
+        paint(v) { L.paint(v); draw() },
         // stop drawing while it is hidden (and start again)
         pause(p) { if (p === paused) return; paused = p; visible = !p; if (!p) kick() },
         // keep it still, facing you (while another lamp is landing on top of it)
