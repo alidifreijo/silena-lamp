@@ -183,3 +183,8 @@ html.lenis, html.lenis body { height: auto; }
     /* the hero illustration's softness: less contrast, a touch of blur */
     filter: saturate(0.92) contrast(0.92) blur(0.4px);
 }
+.light-wash {
+    position: fixed; inset: 0; z-index: 4; pointer-events: none; visibility: hidden; opacity: 0;
+    mix-blend-mode: screen;
+}
+html[data-framer-theme="light"] .light-wash { mix-blend-mode: soft-light; }

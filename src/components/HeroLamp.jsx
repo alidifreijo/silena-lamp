@@ -1,7 +1,7 @@
 // The lamp leaves the hero photo: as you scroll, a 3D lamp takes over from the one in the picture
 // (same place, same size, same amber glass), lifts off and floats into 01 Feel, where it hangs in
-// the middle, turning gently, and switches on as the words light up. Then it drifts down into the
-// room as it builds, becomes a point of light and hands over to the room's touch points.
+// the middle, turning gently, and switches on as the words light up. Into the room it hands over
+// with light: its glow floods the screen and settles, and the room is there.
 import { useEffect, useRef } from "react"
 import { loadThree, makeRealLamp } from "./SilenaLamp3D.tsx"
 
@@ -17,6 +17,7 @@ const ease = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2)
 
 export default function HeroLamp() {
     const cv = useRef(null)
+    const washRef = useRef(null)
     useEffect(() => {
         if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
         let alive = true, lamp = null, raf = 0
@@ -46,25 +47,26 @@ export default function HeroLamp() {
             let x = px + (tx - px) * lift, y = py + (ty - py) * (1 - Math.pow(1 - lift, 2)), r = pr + (tr - pr) * lift
             // it appears exactly over the photo's lamp, then leaves the picture behind
             let alpha = cl((h - 0.02) / 0.1)
-            // 3. into the room: as the room comes up and builds itself, the lamp drifts down into it,
-            // shrinking to a point of light in the middle of the floor; when the room is built, that
-            // light becomes its four touch points
-            const host = document.querySelector(".slr-host"), svg = host && host.querySelector(".slr svg")
-            if (host && svg) {
-                const ht = host.getBoundingClientRect().top, sr = svg.getBoundingClientRect()
-                const pinned = W > 860
-                // the room's own build progress (the same measure the room uses)
-                const q = pinned ? cl((H * 0.45 - ht) / (H * 0.45 + 2.7 * H * 0.85)) : cl((H * 0.95 - sr.top) / (H * 0.8))
-                const m = pinned ? cl((H - ht) / (H + 0.55 * (H * 0.45 + 2.7 * H * 0.85))) : cl(q / 0.55)
+            // 3. into the room, with light rather than movement: the lamp brightens and its glow opens
+            // up until it floods the screen, then settles back and leaves the room, already drawing
+            // itself, in the warm light it left behind
+            let wash = 0, wr = 0
+            const host = document.querySelector(".slr-host")
+            if (host) {
+                const ht = host.getBoundingClientRect().top
+                const m = cl((H - ht) / (H * 1.5))
                 if (m > 0) {
-                    // the middle of the floor, P(5,5,0), in the drawing's viewBox (168 14 864 812)
-                    const kk = Math.min(sr.width / 864, sr.height / 812), fx = sr.left + (sr.width - 864 * kk) / 2 + (600 - 168) * kk, fy = sr.top + (sr.height - 812 * kk) / 2 + (580 - 14) * kk
-                    const e = ease(m), ey = 1 - Math.pow(1 - m, 3)
-                    x = x + (fx - x) * e
-                    y = y + (fy - y) * ey
-                    r = r + (9 - r) * e
-                    alpha *= 1 - cl((q - 0.56) / 0.1)
+                    wash = Math.sin(Math.PI * cl(m / 0.9))
+                    wr = tr * 1.5 + Math.hypot(W, H) * 1.1 * ease(cl(m / 0.55))
+                    alpha *= 1 - ease(cl((m - 0.2) / 0.3))
+                    y -= tr * 0.25 * ease(cl(m / 0.4))
                 }
+            }
+            const wl = washRef.current
+            if (wl) {
+                wl.style.opacity = wash.toFixed(3)
+                wl.style.visibility = wash > 0.002 ? "visible" : "hidden"
+                wl.style.background = `radial-gradient(circle ${Math.round(wr)}px at ${x.toFixed(0)}px ${y.toFixed(0)}px, rgba(255,226,180,.9) 0%, rgba(255,176,96,.55) 28%, rgba(240,137,42,.18) 60%, rgba(240,137,42,0) 100%)`
             }
             el.style.opacity = alpha.toFixed(3)
             el.style.visibility = alpha > 0.002 ? "visible" : "hidden"
@@ -72,9 +74,7 @@ export default function HeroLamp() {
             const k = r / (S * LAMP_FILL)
             el.style.transform = `translate(${(x - (S * k) / 2).toFixed(1)}px,${(y - (S * k) / 2).toFixed(1)}px) scale(${k.toFixed(4)})`
             // lit as in the photo, dims a little on the way, then warms up again with the words
-            if (lamp) lamp.power(h < 0.5 ? 1 - 0.6 * cl(h / 0.5) : 0.4 + 0.6 * cl((f - 0.05) / 0.4))
-            // as it becomes a point of light its glow takes over
-            el.style.filter = r < 40 ? `saturate(0.92) contrast(0.92) blur(0.4px) drop-shadow(0 0 ${(14 * (1 - r / 40)).toFixed(1)}px rgba(255,200,140,.9))` : ""
+            if (lamp) lamp.power(h < 0.5 ? 1 - 0.6 * cl(h / 0.5) : 0.4 + 0.6 * cl((f - 0.05) / 0.4) + wash)
         }
         raf = requestAnimationFrame(tick)
         return () => {
@@ -83,5 +83,10 @@ export default function HeroLamp() {
             lamp?.dispose()
         }
     }, [])
-    return <canvas ref={cv} className="hero-lamp" width={S} height={S} aria-hidden="true" style={{ width: S, height: S }} />
+    return (
+        <>
+            <canvas ref={cv} className="hero-lamp" width={S} height={S} aria-hidden="true" style={{ width: S, height: S }} />
+            <div ref={washRef} className="light-wash" aria-hidden="true" />
+        </>
+    )
 }

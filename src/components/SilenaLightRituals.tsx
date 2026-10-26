@@ -97,7 +97,8 @@ function mountRituals(host, o) {
 
     // where the lamp hangs on the left wall (closer to the corner on phones, so it stays in frame)
     let LY = 2.4
-    const LZ = 4.7, K = 0.95
+    // (the same spot as the dreamer's lamp in the room, so that hand-over is seamless)
+    const LZ = 4.2, K = 0.95
     /* camera: P(x,y,z) in room units (walls 10 wide, 7 high), isometric like section 02 */
     const proj = (c, x, y, z) => [c.ox + (x - y) * c.s * 0.866, c.oy + (x + y) * c.s * 0.5 + (7 - z) * c.s]
     const camEnd = () => (portrait ? { ox: W * 0.46, oy: -H * 0.035, s: W / 4.9 } : { ox: W * 0.4, oy: -H * 0.25, s: H / 8.4 })

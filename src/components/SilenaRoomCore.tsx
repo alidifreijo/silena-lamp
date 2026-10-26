@@ -142,7 +142,7 @@ export function mount(root: HTMLElement, COPY: any, NIGHTL: string, DAYL: string
        [4,cyl(8.25,6.25,1.52,.08,.22,'m-glass')+cyl(7.65,7.75,1.52,.08,.22,'m-glass')+cyl(5.75,5.65,1.52,.08,.22,'m-glass')+cyl(7.7,5.25,1.52,.08,.22,'m-glass')+cyl(6.25,5.6,1.52,.18,.42,'m-blue')+flowers(6.25,5.6,1.52,.42,1.05)],
        [5,chair(8.9,6.5,'x+','m-mustard')+chair(6.8,8.6,'y+','m-olive')]]},
      dreamer:{anchor:'vinyl',name:'The dreamer',line:'Put a record on. Low light, two glasses, nowhere to be.',
-      lamp:'#B9A6E0',acc:'#9A88C2',L:{o:[.14,1.9,3.0],pl:'wall',R:.5,th:.14},read:'<b>Lavender</b> · on the wall, above the record player',
+      lamp:'#B9A6E0',acc:'#9A88C2',L:{o:[.14,2.4,4.2],pl:'wall',R:.5,th:.14},read:'<b>Lavender</b> · on the wall, above the record player',
       items:[
        [0,blob(3.6,3.8,0,1.9,1.8,4,'rug')+blob(3.6,3.8,0,1.9,1.8,4,'pat stripe')+blob(3.6,3.8,0,1.4,1.3,4,'ln dash')],
        [1,box(.1,.1,0,.6,.6,1.7,'m-ink')+(()=>{const [a,b]=P(.4,.7,1.15),[c,d]=P(.4,.7,.5);return `<ellipse class="spk" cx="${f(a)}" cy="${f(b)}" rx="7" ry="9"/><ellipse class="spk" cx="${f(c)}" cy="${f(d)}" rx="10" ry="13"/>`})()],
@@ -181,8 +181,14 @@ export function mount(root: HTMLElement, COPY: any, NIGHTL: string, DAYL: string
       <feDisplacementMap id="slr-fxWob" in="SourceGraphic" in2="wob" scale="7" xChannelSelector="R" yChannelSelector="G" result="w"/>
       <feTurbulence type="fractalNoise" baseFrequency=".55" numOctaves="1" seed="12" result="c"/>
       <feColorMatrix in="c" type="matrix" values=".33 .33 .33 0 0  .33 .33 .33 0 0  .33 .33 .33 0 0  0 0 0 0 1" result="cg"/>
-      <feComposite id="slr-fxCanvas" in="w" in2="cg" operator="arithmetic" k1="0" k2="1" k3=".045" k4="-.022" result="p2"/>
-      <feComposite in="p2" in2="w" operator="in"/>
+      <feComposite id="slr-fxCanvas" in="w" in2="cg" operator="arithmetic" k1="0" k2="1" k3=".11" k4="-.055" result="p2"/>
+      <feTurbulence type="fractalNoise" baseFrequency=".03" numOctaves="2" seed="4" result="m"/>
+      <feColorMatrix in="m" type="matrix" values=".33 .33 .33 0 0  .33 .33 .33 0 0  .33 .33 .33 0 0  0 0 0 0 1" result="mg"/>
+      <feComposite in="p2" in2="mg" operator="arithmetic" k1="0" k2="1" k3=".09" k4="-.045" result="p3"/>
+      <feTurbulence type="fractalNoise" baseFrequency=".035 .6" numOctaves="2" seed="9" result="st"/>
+      <feColorMatrix in="st" type="matrix" values=".33 .33 .33 0 0  .33 .33 .33 0 0  .33 .33 .33 0 0  0 0 0 0 1" result="sg"/>
+      <feComposite in="p3" in2="sg" operator="arithmetic" k1="0" k2="1" k3=".07" k4="-.035" result="p4"/>
+      <feComposite in="p4" in2="w" operator="in"/>
      </filter>
      <filter id="slr-waveBlur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.4"/></filter>
      <filter id="slr-patchBlur" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="7"/></filter>
@@ -267,7 +273,7 @@ export function mount(root: HTMLElement, COPY: any, NIGHTL: string, DAYL: string
     // profile, round at the back and front, darker at the sides and lighter towards the glowing front
     const PROF=[[0,.66,.2],[.06,.86,.2],[.14,.94,.2],[.24,.985,.2],[.36,1,.21],[.48,.985,.22],[.6,.95,.24],[.7,.9,.28],[.79,.83,.33],[.87,.74,.39],[.94,.64,.44],[1,.5,.47]];
     const ringD=(ro,ri)=>`M${ro},0 A${ro},${ro} 0 1,0 -${ro},0 A${ro},${ro} 0 1,0 ${ro},0 Z M${ri},0 A${ri},${ri} 0 1,1 -${ri},0 A${ri},${ri} 0 1,1 ${ri},0 Z`;
-    function setLamp(L){const {u,v,n}=PL[L.pl],R=L.R,T=R*.62;
+    function setLamp(L){const {u,v,n}=PL[L.pl],R=L.R,T=R*.74;
       // the old front point minus the old thickness is where it touches the wall/table; it grows out from there
       const surf=[L.o[0]-n[0]*L.th,L.o[1]-n[1]*L.th,L.o[2]-n[2]*L.th],o=[surf[0]+n[0]*T,surf[1]+n[1]*T,surf[2]+n[2]*T];let h='';
       PROF.forEach(([t,ro,ri],i)=>{const d=T*t,oi=[surf[0]+n[0]*d,surf[1]+n[1]*d,surf[2]+n[2]*d],last=i===PROF.length-1;
