@@ -104,7 +104,7 @@ export default function SilenaShop(props) {
         loadThree()
             .then((THREE) => {
                 if (!alive || !canvas.current) return
-                lamp.current = makeRealLamp(THREE, canvas.current, { mount, paint: REST })
+                lamp.current = makeRealLamp(THREE, canvas.current, { mount, paint: REST, glass: 1 })
                 lamp.current.colors(fin)
                 // Light Rituals lands its lamp right here: hold still, facing you, until it has
                 const rit = document.querySelector(".slx")

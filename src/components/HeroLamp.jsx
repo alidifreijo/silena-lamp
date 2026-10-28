@@ -93,7 +93,9 @@ export default function HeroLamp() {
                 fl.style.visibility = LOOK === "b" && alpha > 0.002 ? "visible" : "hidden"
                 fl.style.width = fl.style.height = (2 * r).toFixed(1) + "px"
                 fl.style.transform = `translate(${(x - r).toFixed(1)}px,${(y - r).toFixed(1)}px)`
-                fl.style.setProperty("--on", String(h < 0.5 ? 1 - 0.5 * cl((h - 0.25) / 0.25) : 0.5 + 0.5 * cl((f - 0.05) / 0.4)))
+                fl.style.setProperty("--on", String(h < 0.5 ? 1 - 0.35 * cl((h - 0.25) / 0.25) : 0.65 + 0.35 * cl((f - 0.05) / 0.4)))
+                // it leaves the photo as the photo's solid amber and clears into glass on the way down
+                fl.style.setProperty("--solid", cl(1 - (h - 0.14) / 0.42).toFixed(3))
             }
             if (gr) {
                 gr.style.opacity = LOOK === "c" ? (alpha * 0.18).toFixed(3) : "0"
@@ -120,7 +122,7 @@ export default function HeroLamp() {
         <>
             <canvas ref={cv} className="hero-lamp" width={S} height={S} aria-hidden="true" style={{ width: S, height: S }} />
             <div ref={grainRef} className="hero-lamp-grain" aria-hidden="true" />
-            <div ref={flatRef} className="hero-lamp-flat" aria-hidden="true"><i /></div>
+            <div ref={flatRef} className="hero-lamp-flat" aria-hidden="true"><i /><b /></div>
             <div ref={washRef} className="light-wash" aria-hidden="true" />
         </>
     )

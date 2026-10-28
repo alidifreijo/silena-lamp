@@ -15,7 +15,7 @@ function buildLamp(THREE) {
     const geo = new THREE.LatheGeometry(pts, 180)
     geo.computeVertexNormals()
     geo.translate(0, -0.4, 0)
-    const U = { uTint: { value: new THREE.Color() }, uCore: { value: new THREE.Color() }, uRim: { value: new THREE.Color() }, uOn: { value: 1 }, uAlpha: { value: 1 }, uPaint: { value: 0 } }
+    const U = { uTint: { value: new THREE.Color() }, uCore: { value: new THREE.Color() }, uRim: { value: new THREE.Color() }, uOn: { value: 1 }, uAlpha: { value: 1 }, uPaint: { value: 0 }, uGlass: { value: 0 } }
     // glass, not plastic: little diffuse shading; the glass's colour and depth (milky in the middle,
     // denser at the thick rim), glossy reflections of a soft studio (two tall softboxes and a top
     // light) that get stronger at grazing angles, and a sharp glint. Lit from inside, the glow takes
@@ -25,7 +25,7 @@ function buildLamp(THREE) {
         side: THREE.DoubleSide,
         transparent: true,
         vertexShader: `varying vec3 vN;varying vec3 vV;varying vec3 vP;void main(){vec4 mv=modelViewMatrix*vec4(position,1.);vN=normalize(normalMatrix*normal);vV=normalize(-mv.xyz);vP=position;gl_Position=projectionMatrix*mv;}`,
-        fragmentShader: `uniform vec3 uTint;uniform vec3 uCore;uniform vec3 uRim;uniform float uOn;uniform float uAlpha;uniform float uPaint;varying vec3 vN;varying vec3 vV;varying vec3 vP;
+        fragmentShader: `uniform vec3 uTint;uniform vec3 uCore;uniform vec3 uRim;uniform float uOn;uniform float uAlpha;uniform float uPaint;uniform float uGlass;varying vec3 vN;varying vec3 vV;varying vec3 vP;
 float h(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
 void main(){vec3 N=normalize(vN),V=normalize(vV);if(!gl_FrontFacing)N=-N;float ndv=max(dot(N,V),0.);float fr=1.-ndv;
 float F=.04+.96*pow(fr,5.);vec3 R=reflect(-V,N);
@@ -46,7 +46,10 @@ col+=vec3(1.)*pow(max(dot(R,normalize(vec3(-.6,.3,.75))),0.),18.)*.07*gl;
 float g=h(floor(gl_FragCoord.xy/(1.+2.*uPaint)));
 col=mix(col,col*vec3(1.03,.98,.9)*.94+.025,uPaint*.6);
 col+=(g-.5)*(.02+.06*uPaint);
-gl_FragColor=vec4(col,uAlpha);}`,
+// translucent glass (as the SILENA letters): the faces towards you let what is behind through,
+// the thick rim stays denser, and a warm light glows from the middle
+col+=mix(uCore,vec3(1.,.55,.15),.35)*uGlass*.12*(1.-smoothstep(.1,1.,r))*(.4+.6*uOn);
+gl_FragColor=vec4(col,uAlpha*(1.-uGlass*.24*(1.-smoothstep(.2,1.,fr))));}`,
     })
     const shade = new THREE.Mesh(geo, glass)
     // the same shape as a wire drawing (profile lines and rings), for when the lamp is still "being built"
@@ -122,6 +125,14 @@ gl_FragColor=vec4(col,uAlpha);}`,
         paint(v) {
             U.uPaint.value = v
         },
+        glass(v) {
+            U.uGlass.value = v
+            // see-through: only the faces towards you, so the back of the ring does not streak through
+            glass.side = v > 0 ? THREE.FrontSide : THREE.DoubleSide
+            glass.needsUpdate = true
+            // the mounting plate behind would show through as a hard disc
+            base.visible = baseShade.visible = !(v > 0)
+        },
         colors(f) {
             U.uTint.value.copy(col(f.tint))
             U.uCore.value.copy(col(f.core))
@@ -154,6 +165,7 @@ export function makeRealLamp(THREE, cv: HTMLCanvasElement, opts: any = {}) {
     const L = buildLamp(THREE)
     if (opts.cable === false) L.cable.visible = false
     if (opts.paint) L.paint(opts.paint)
+    if (opts.glass) L.glass(opts.glass)
     scene.add(L.rig)
     const rig = L.rig
     let target = POSE[opts.mount || "wall"], cur = { ...target }, yaw = 0, yawT = 0, base0 = 0, amp = 1, vel = 0, tilt = 0, tiltT = 0
