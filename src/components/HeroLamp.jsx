@@ -15,17 +15,24 @@ const S = 760 // canvas size in CSS px (scaled with a transform)
 const cl = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v))
 const ease = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2)
 
+// how the lamp is drawn on its way through Feel: by default (b) in the same glass as the SILENA
+// letters (translucent, a warm glow from inside, the background's grain showing through);
+// ?lamp=a (clean 3D glass) or ?lamp=c (a line sketch) to compare
+const LOOK = (typeof location !== "undefined" && new URLSearchParams(location.search).get("lamp")) || "b"
+
 export default function HeroLamp() {
     const cv = useRef(null)
     const washRef = useRef(null)
     const grainRef = useRef(null)
+    const flatRef = useRef(null)
     useEffect(() => {
         if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
         let alive = true, lamp = null, raf = 0, lastEmp = ""
-        loadThree().then((THREE) => {
+        if (LOOK !== "b") loadThree().then((THREE) => {
             if (!alive || !cv.current) return
-            lamp = makeRealLamp(THREE, cv.current, { mount: "wall", drag: false, cable: false, paint: 1, on: 0, onSpeed: 0.08, ratio: Math.min(window.devicePixelRatio || 1, 1.5) })
+            lamp = makeRealLamp(THREE, cv.current, { mount: "wall", drag: false, cable: false, paint: LOOK === "c" ? 0.15 : 0.18, on: 0, onSpeed: 0.08, ratio: Math.min(window.devicePixelRatio || 1, 2) })
             lamp.colors(PHOTO_GLASS)
+            if (LOOK === "c") lamp.build(0.2, 0, "#F4E9DC")
         })
         // the same coarse grain as Light Rituals, over the lamp only, so it reads as a painted sketch
         {
@@ -80,13 +87,21 @@ export default function HeroLamp() {
                 wl.style.visibility = wash > 0.002 ? "visible" : "hidden"
                 wl.style.background = `radial-gradient(circle ${Math.round(wr)}px at ${x.toFixed(0)}px ${y.toFixed(0)}px, rgba(255,232,196,.85) 0%, rgba(255,196,130,.4) 30%, rgba(240,160,80,.1) 62%, rgba(240,160,80,0) 100%)`
             }
+            const fl = flatRef.current
+            if (fl) {
+                fl.style.opacity = LOOK === "b" ? alpha.toFixed(3) : "0"
+                fl.style.visibility = LOOK === "b" && alpha > 0.002 ? "visible" : "hidden"
+                fl.style.width = fl.style.height = (2 * r).toFixed(1) + "px"
+                fl.style.transform = `translate(${(x - r).toFixed(1)}px,${(y - r).toFixed(1)}px)`
+                fl.style.setProperty("--on", String(h < 0.5 ? 1 - 0.5 * cl((h - 0.25) / 0.25) : 0.5 + 0.5 * cl((f - 0.05) / 0.4)))
+            }
             if (gr) {
-                gr.style.opacity = (alpha * 0.32).toFixed(3)
+                gr.style.opacity = LOOK === "c" ? (alpha * 0.18).toFixed(3) : "0"
                 gr.style.visibility = alpha > 0.002 ? "visible" : "hidden"
                 gr.style.width = gr.style.height = (2.1 * r).toFixed(1) + "px"
                 gr.style.transform = `translate(${(x - 1.05 * r).toFixed(1)}px,${(y - 1.05 * r).toFixed(1)}px)`
             }
-            el.style.opacity = alpha.toFixed(3)
+            el.style.opacity = LOOK === "b" ? "0" : alpha.toFixed(3)
             el.style.visibility = alpha > 0.002 ? "visible" : "hidden"
             if (lamp) lamp.pause(alpha <= 0.002)
             const k = r / (S * LAMP_FILL)
@@ -105,6 +120,7 @@ export default function HeroLamp() {
         <>
             <canvas ref={cv} className="hero-lamp" width={S} height={S} aria-hidden="true" style={{ width: S, height: S }} />
             <div ref={grainRef} className="hero-lamp-grain" aria-hidden="true" />
+            <div ref={flatRef} className="hero-lamp-flat" aria-hidden="true"><i /></div>
             <div ref={washRef} className="light-wash" aria-hidden="true" />
         </>
     )

@@ -179,6 +179,20 @@ html.lenis, html.lenis body { height: auto; }
     mix-blend-mode: overlay; border-radius: 50%;
     -webkit-mask: radial-gradient(closest-side, #000 88%, transparent 100%); mask: radial-gradient(closest-side, #000 88%, transparent 100%);
 }
+/* the lamp in Feel, in the letters' glass: a translucent ring with a warm glow from inside and a soft
+   shadow outside (the shadow sits on the wrapper so the ring's mask does not cut it) */
+.hero-lamp-flat {
+    position: fixed; left: 0; top: 0; z-index: 4; pointer-events: none; visibility: hidden; opacity: 0; --on: 1;
+    filter: drop-shadow(5px 10px 10px rgba(0, 0, 0, 0.25));
+}
+.hero-lamp-flat i {
+    position: absolute; inset: 0; border-radius: 50%;
+    background:
+        radial-gradient(circle closest-side, rgba(255, 132, 0, calc(0.8 * var(--on))) 0%, rgba(255, 132, 0, calc(0.35 * var(--on))) 55%, rgba(255, 132, 0, 0) 100%),
+        linear-gradient(rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.2));
+    -webkit-mask: radial-gradient(circle closest-side, transparent 0 21%, #000 22.5% 98.5%, transparent 100%);
+    mask: radial-gradient(circle closest-side, transparent 0 21%, #000 22.5% 98.5%, transparent 100%);
+}
 .light-wash {
     position: fixed; inset: 0; z-index: 4; pointer-events: none; visibility: hidden; opacity: 0;
     mix-blend-mode: screen;
