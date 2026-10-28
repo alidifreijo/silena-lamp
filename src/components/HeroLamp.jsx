@@ -68,7 +68,7 @@ export default function HeroLamp() {
                 const ht = host.getBoundingClientRect().top
                 const m = cl((H - ht) / (H * 1.1))
                 if (m > 0) {
-                    wash = 0.5 * Math.sin(Math.PI * cl(m / 0.6))
+                    wash = 0.5 * Math.sin(Math.PI * cl(m / 0.75))
                     wr = tr * 1.5 + Math.hypot(W, H) * 1.1 * ease(cl(m / 0.45))
                     alpha *= 1 - ease(cl((m - 0.15) / 0.25))
                     y -= tr * 0.25 * ease(cl(m / 0.4))

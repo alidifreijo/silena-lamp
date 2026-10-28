@@ -565,8 +565,8 @@ export default function SilenaRoom(props: Props) {
         let stopAsm = () => {}
         try {
             addGuides(root.querySelector("svg"))
-            // no forced pause once it is built: the points pulse and the page keeps moving
-            stopAsm = assemble(host, root, buildScroll, { holdMs: 0 })
+            // once it is built the scroll pauses for 2 s while the points pulse
+            stopAsm = assemble(host, root, buildScroll, { holdMs: 2000 })
         } catch (e) {
             root.classList.remove("asm")
         }
