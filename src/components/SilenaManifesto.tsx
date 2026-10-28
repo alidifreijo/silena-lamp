@@ -86,7 +86,7 @@ export default function SilenaManifesto(props) {
         eyebrow = "01 — Feel",
         text = "Light doesn’t have to shout. Silena was designed to be felt, not noticed. A warm glow, contained in a soft circular form, bringing calm to the spaces where you slow down.",
         coda = "It doesn’t guide you. It stays with you.",
-        scrollLength = 240,
+        scrollLength = 300,
     } = props
     const c = PALETTE[useSilenaMode()]
     const ref = useRef<HTMLDivElement>(null)

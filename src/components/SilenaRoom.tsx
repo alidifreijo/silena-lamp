@@ -360,7 +360,7 @@ function assemble(host, root, pinVh, opts) {
         lastRaw = p
         lead *= 0.95
         goal = Math.max(goal, Math.min(1, p + lead))
-        const next = done + (goal - done) * 0.11
+        const next = done + (goal - done) * 0.07
         if (next > done + 0.00005) {
             done = goal - next < 0.0008 ? goal : next
             apply(done)
@@ -514,7 +514,7 @@ export default function SilenaRoom(props: Props) {
         dreamerName = "The dreamer",
         dreamerLine = "Put a record on. Low light, two glasses, nowhere to be.",
         dreamerLight = "<b>Lavender</b> · on the wall, above the record player",
-        buildScroll = 140,
+        buildScroll = 270,
     } = props
     const ref = useRef<HTMLDivElement>(null)
     const key = [eyebrow, question, lead, nightLabel, dayLabel, readerName, readerLine, readerLight, storyName, storyLine, storyLight, hostName, hostLine, hostLight, dreamerName, dreamerLine, dreamerLight, buildScroll].join("|")
@@ -606,7 +606,7 @@ addPropertyControls(SilenaRoom, {
     eyebrow: { type: ControlType.String, title: "Eyebrow", defaultValue: "02 — The place to be" },
     question: { type: ControlType.String, title: "Question", defaultValue: "Who are you at home?" },
     lead: { type: ControlType.String, title: "Lead", defaultValue: "A sofa, a table, a bookshelf and a record player. Tap one and the room becomes someone.", displayTextArea: true },
-    buildScroll: { type: ControlType.Number, title: "Build scroll", min: 0, max: 400, step: 10, unit: "vh", defaultValue: 140 },
+    buildScroll: { type: ControlType.Number, title: "Build scroll", min: 0, max: 400, step: 10, unit: "vh", defaultValue: 270 },
     nightLabel: { type: ControlType.String, title: "Night label", defaultValue: "Night" },
     dayLabel: { type: ControlType.String, title: "Day label", defaultValue: "Day" },
     readerName: { type: ControlType.String, title: "Reader", defaultValue: "The reader" },

@@ -65,7 +65,7 @@ function mountRituals(host, o) {
     const n = ORDER.length
 
     const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c])
-    const INTRO_VH = 70, OUTRO_VH = 150
+    const INTRO_VH = 90, OUTRO_VH = 200
     const totalScroll = INTRO_VH + n * o.vhPerState + OUTRO_VH
     host.innerHTML = `<section class="slx" style="height:calc(100vh + ${totalScroll}vh)">
   <div class="slx-pin">
@@ -966,7 +966,7 @@ export default function SilenaLightRituals(props) {
         nightLine = "When the night asks for colour, it answers.",
         nightDetail = "Night · full colour spectrum",
         nightLabel = "Night",
-        vhPerState = 70,
+        vhPerState = 90,
     } = props
     const isCanvas = RenderTarget.current() === RenderTarget.canvas
     const mode = useSilenaMode()
@@ -1046,5 +1046,5 @@ addPropertyControls(SilenaLightRituals, {
     nightLine: { type: ControlType.String, title: "Night", defaultValue: "When the night asks for colour, it answers." },
     nightDetail: { type: ControlType.String, title: "Night · detail", defaultValue: "Night · full colour spectrum" },
     nightLabel: { type: ControlType.String, title: "Night · label", defaultValue: "Night" },
-    vhPerState: { type: ControlType.Number, title: "Scroll per mood", min: 40, max: 200, step: 5, unit: "vh", defaultValue: 70 },
+    vhPerState: { type: ControlType.Number, title: "Scroll per mood", min: 40, max: 200, step: 5, unit: "vh", defaultValue: 90 },
 })
