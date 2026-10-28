@@ -18,6 +18,7 @@ const ease = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2)
 export default function HeroLamp() {
     const cv = useRef(null)
     const washRef = useRef(null)
+    const grainRef = useRef(null)
     useEffect(() => {
         if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
         let alive = true, lamp = null, raf = 0
@@ -26,7 +27,16 @@ export default function HeroLamp() {
             lamp = makeRealLamp(THREE, cv.current, { mount: "wall", drag: false, cable: false, paint: 1, on: 0, onSpeed: 0.08, ratio: Math.min(window.devicePixelRatio || 1, 1.5) })
             lamp.colors(PHOTO_GLASS)
         })
-        const el = cv.current
+        // the same coarse grain as Light Rituals, over the lamp only, so it reads as a painted sketch
+        {
+            const gn = 180, gc = document.createElement("canvas")
+            gc.width = gc.height = gn
+            const gx = gc.getContext("2d"), d = gx.createImageData(gn, gn)
+            for (let i = 0; i < d.data.length; i += 4) { const v = Math.random() * 255; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 255 }
+            gx.putImageData(d, 0, 0)
+            if (grainRef.current) grainRef.current.style.backgroundImage = `url(${gc.toDataURL()})`
+        }
+        const el = cv.current, gr = grainRef.current
         const tick = () => {
             raf = requestAnimationFrame(tick)
             const hero = document.querySelector(".hero"), feel = document.getElementById("feel")
@@ -68,6 +78,12 @@ export default function HeroLamp() {
                 wl.style.visibility = wash > 0.002 ? "visible" : "hidden"
                 wl.style.background = `radial-gradient(circle ${Math.round(wr)}px at ${x.toFixed(0)}px ${y.toFixed(0)}px, rgba(255,226,180,.9) 0%, rgba(255,176,96,.55) 28%, rgba(240,137,42,.18) 60%, rgba(240,137,42,0) 100%)`
             }
+            if (gr) {
+                gr.style.opacity = (alpha * 0.32).toFixed(3)
+                gr.style.visibility = alpha > 0.002 ? "visible" : "hidden"
+                gr.style.width = gr.style.height = (2.1 * r).toFixed(1) + "px"
+                gr.style.transform = `translate(${(x - 1.05 * r).toFixed(1)}px,${(y - 1.05 * r).toFixed(1)}px)`
+            }
             el.style.opacity = alpha.toFixed(3)
             el.style.visibility = alpha > 0.002 ? "visible" : "hidden"
             if (lamp) lamp.pause(alpha <= 0.002)
@@ -86,6 +102,7 @@ export default function HeroLamp() {
     return (
         <>
             <canvas ref={cv} className="hero-lamp" width={S} height={S} aria-hidden="true" style={{ width: S, height: S }} />
+            <div ref={grainRef} className="hero-lamp-grain" aria-hidden="true" />
             <div ref={washRef} className="light-wash" aria-hidden="true" />
         </>
     )

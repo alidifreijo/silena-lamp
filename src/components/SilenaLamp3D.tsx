@@ -34,18 +34,18 @@ float sb2=smoothstep(-.15,-.8,R.x)*smoothstep(-.5,.4,R.y)*(1.-smoothstep(.5,1.,R
 float tp=smoothstep(.45,1.,R.y)*.6;
 vec3 env=vec3(1.,.99,.97)*(sb1+sb2+tp)+vec3(.07,.06,.05);
 vec3 L1=normalize(vec3(-.5,.8,.6));float d1=max(dot(N,L1),0.);
-float r=length(vP.xz);float thick=smoothstep(.25,1.,fr);
+float r=length(vP.xz);float thick=smoothstep(.25,1.,fr)*(1.-.55*min(uPaint,1.));
 vec3 off=uTint*(.7+.12*d1)*mix(1.,.62,thick)+uTint*uTint*.16*(1.-thick)+vec3(1.)*pow(fr,2.5)*.1;
 vec3 glow=mix(uCore,uRim,smoothstep(.25,1.,fr))*(1.-.22*thick);
 glow*=mix(.78,1.,smoothstep(.17,.45,r))*mix(1.,.9,smoothstep(.6,1.,r))*(.94+.08*d1);
 vec3 col=mix(off,glow,uOn);
-float gl=1.-.7*uPaint;
+float gl=clamp(1.-uPaint,0.,1.);
 col+=env*mix(.08,.46,F)*mix(.4,.18,uOn)*gl;
 col+=vec3(1.)*pow(max(dot(R,normalize(vec3(.45,.55,.7))),0.),36.)*mix(.2,.12,uOn)*gl*gl;
 col+=vec3(1.)*pow(max(dot(R,normalize(vec3(-.6,.3,.75))),0.),18.)*.07*gl;
 float g=h(floor(gl_FragCoord.xy/(1.+2.*uPaint)));
 col=mix(col,col*vec3(1.03,.98,.9)*.94+.025,uPaint*.6);
-col+=(g-.5)*(.02+.14*uPaint);
+col+=(g-.5)*(.02+.06*uPaint);
 gl_FragColor=vec4(col,uAlpha);}`,
     })
     const shade = new THREE.Mesh(geo, glass)

@@ -164,7 +164,12 @@ html.lenis, html.lenis body { height: auto; }
     position: fixed; left: 0; top: 0; z-index: 4; pointer-events: none;
     transform-origin: 0 0; visibility: hidden; opacity: 0; will-change: transform, opacity;
     /* the hero illustration's softness: less contrast, a touch of blur */
-    filter: saturate(0.9) contrast(0.88) blur(0.6px);
+    filter: saturate(0.85) contrast(0.82) blur(0.7px);
+}
+.hero-lamp-grain {
+    position: fixed; left: 0; top: 0; z-index: 4; pointer-events: none; visibility: hidden; opacity: 0;
+    mix-blend-mode: overlay; border-radius: 50%;
+    -webkit-mask: radial-gradient(closest-side, #000 88%, transparent 100%); mask: radial-gradient(closest-side, #000 88%, transparent 100%);
 }
 .light-wash {
     position: fixed; inset: 0; z-index: 4; pointer-events: none; visibility: hidden; opacity: 0;
@@ -187,6 +192,3 @@ html[data-nav-tone] .nav .silena-bag-btn { background: var(--nav-bg) !important;
     opacity: 0; transition: opacity .5s var(--ease);
 }
 html.in-shop .nav::before { opacity: 1; }
-
-/* 01 Feel on phones: the words use the full width (the photos pass over them once read) */
-@media (max-width: 860px) { .slm-words { max-width: 100% !important; } }

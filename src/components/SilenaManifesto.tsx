@@ -4,7 +4,7 @@
 //  2. Images bloom around and over the sentence, each drifting at its own speed, then fade away.
 // Colours follow the Silena day/night switch. The eyebrow sits at the nav's height
 // (top 32px, left 42px) for as long as the section is pinned.
-import { useEffect, useRef, useState, type CSSProperties } from "react"
+import { useRef, type CSSProperties } from "react"
 import { motion, useScroll, useTransform, useSpring, type MotionValue } from "framer-motion"
 import { useSilenaMode } from "./useSilenaMode.js"
 
@@ -17,15 +17,14 @@ const FONT = "'Outfit', sans-serif"
 const BALANCE = { textWrap: "balance" } as unknown as CSSProperties
 const IMAGES = [1, 2, 3, 4, 5].map((i) => `/images/feel-${i}.jpg`)
 
-// photos live in the side margins (centre x/y in %, width in vw, aspect w/h, drift speed): they
-// never cross the words in the middle. On phones there are no margins, so the words step back
-// once they have been read and the photos pass over them.
+// scattered layout (centre x/y in %, width in vw — never smaller than min px on phones, aspect w/h, drift speed):
+// the photos drift up and pass over the words
 const SLOTS = [
-    { x: 11, y: 30, w: 15, min: 120, r: 0.75, s: 1.1 },
-    { x: 89, y: 24, w: 15, min: 130, r: 0.75, s: 0.8 },
-    { x: 13, y: 80, w: 14, min: 130, r: 1, s: 1.3 },
-    { x: 88, y: 76, w: 16, min: 140, r: 0.75, s: 1.2 },
-    { x: 10, y: 95, w: 12, min: 115, r: 0.74, s: 0.8 },
+    { x: 11, y: 28, w: 16, min: 120, r: 0.75, s: 1.1 },
+    { x: 79, y: 20, w: 17, min: 130, r: 0.75, s: 0.8 },
+    { x: 24, y: 76, w: 17, min: 130, r: 1, s: 1.3 },
+    { x: 86, y: 70, w: 19, min: 140, r: 0.75, s: 1.2 },
+    { x: 58, y: 86, w: 15, min: 115, r: 0.74, s: 1.0 },
 ]
 
 function Word({ p, start, end, children }: { p: MotionValue<number>; start: number; end: number; children: string }) {
@@ -101,15 +100,6 @@ export default function SilenaManifesto(props) {
 
     const words = text.split(/\s+/).filter(Boolean)
 
-    // phones: the words have been read by the time the photos come, so they step back
-    const [narrow, setNarrow] = useState(false)
-    useEffect(() => {
-        const q = () => setNarrow(window.innerWidth <= 860)
-        q()
-        window.addEventListener("resize", q)
-        return () => window.removeEventListener("resize", q)
-    }, [])
-    const textBack = useTransform(p, [0.48, 0.56, 0.9, 0.98], [1, narrow ? 0.18 : 1, narrow ? 0.18 : 1, 1])
     const span = 0.38
 
     return (
@@ -147,13 +137,13 @@ export default function SilenaManifesto(props) {
                     <Floating key={i} p={p} src={src} i={i} slot={SLOTS[i]} />
                 ))}
 
-                <motion.div className="slm-words" style={{ position: "relative", zIndex: 2, maxWidth: "min(1080px, 58vw)", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 40, opacity: textBack, marginTop: "-6vh" }}>
+                <motion.div className="slm-words" style={{ position: "relative", zIndex: 2, maxWidth: 1080, textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 48, marginTop: "-6vh" }}>
                     <p
                         style={{
                             margin: 0,
                             fontFamily: FONT,
                             fontWeight: 200,
-                            fontSize: "clamp(28px, 3.1vw, 54px)",
+                            fontSize: "clamp(30px, 3.6vw, 58px)",
                             lineHeight: 1.18,
                             letterSpacing: "-0.02em",
                             color: c.text,

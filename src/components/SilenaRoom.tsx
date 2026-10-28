@@ -45,7 +45,7 @@ const LAYOUT =
     ".slr .tools{display:none}" +
     /* entry: touch points, window light and small animations wait until the room is built */
     ".slr .spots .spot{transition:opacity .6s ease,transform .6s cubic-bezier(.34,1.56,.64,1),background .4s,border-color .4s,width .3s,height .3s}" +
-    ".slr.asm:not(.spots-on) .spots .spot{opacity:0;transform:translate(-50%,-50%) rotate(var(--rot,0deg)) scale(.6);pointer-events:none}" +
+    ".slr.asm:not(.spots-on) .spots .spot{opacity:0;transform:translate(-50%,-50%) scale(.6);pointer-events:none}" +
     ".slr #slr-anim,.slr #slr-shaft,.slr #slr-patch{transition:opacity .8s ease}" +
     ".slr.asm #slr-anim,.slr.asm #slr-shaft,.slr.asm #slr-patch{opacity:0}" +
     /* pinned while it builds (desktop) */
@@ -58,31 +58,27 @@ const LAYOUT =
     "body[data-framer-theme=\"light\"] .slr-eb span{color:rgba(46,34,22,.62)}" +
     /* entry: line-drawing twins of the pieces, and the touch points' first pulse */
     ".slr .slr-sk,.slr .slr-sk *{fill:none!important;stroke:var(--ink)!important;stroke-width:1.25px!important;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}" +
-    /* the touch points are painted pools of light, in each person's colour, with the room's grain.
-       Their names show for a moment the first time (and on hover), right where the eye already is */
-    ".slr .spots .spot{--rot:0deg;--pc:#FFD6A0;width:54px!important;height:46px!important;border:0!important;background:none!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;overflow:visible;display:block}" +
-    ".slr .spots .spot[data-k=reader]{--pc:#FFB066}.slr .spots .spot[data-k=storyteller]{--pc:#FFD199}.slr .spots .spot[data-k=host]{--pc:#FFCF8F}.slr .spots .spot[data-k=dreamer]{--pc:#C9B8EC}" +
-    ".slr .spots .spot::before{content:'';position:absolute;inset:0;border-radius:54% 46% 58% 42% / 48% 56% 44% 52%;" +
-    "background:radial-gradient(closest-side,color-mix(in srgb,var(--pc) 35%,#fff) 0,color-mix(in srgb,var(--pc) 80%,transparent) 30%,color-mix(in srgb,var(--pc) 30%,transparent) 62%,transparent 100%);" +
-    "filter:blur(2px);mix-blend-mode:screen;animation:slrBreath 4.2s ease-in-out infinite;transition:opacity .6s ease}" +
-    ".slr[data-mode=day] .spots .spot::before{mix-blend-mode:normal;background:radial-gradient(closest-side,#fff 0,color-mix(in srgb,var(--pc) 85%,#fff) 30%,color-mix(in srgb,var(--pc) 40%,transparent) 62%,transparent 100%)}" +
-    ".slr .spots .spot::after{content:'';position:absolute;inset:4px;border-radius:50%;opacity:.5;mix-blend-mode:multiply;pointer-events:none;" +
-    "background:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .42 0 0 0 0 .3 0 0 0 1.6 -.55'/%3E%3C/filter%3E%3Crect width='60' height='60' filter='url(%23n)'/%3E%3C/svg%3E\");" +
-    "-webkit-mask:radial-gradient(closest-side,#000 30%,transparent);mask:radial-gradient(closest-side,#000 30%,transparent)}" +
-    ".slr .spots .spot:nth-child(2)::before{animation-delay:-1s}.slr .spots .spot:nth-child(3)::before{animation-delay:-2.1s}.slr .spots .spot:nth-child(4)::before{animation-delay:-3.2s}" +
-    "@keyframes slrBreath{0%,100%{transform:scale(.9);opacity:.8}50%{transform:scale(1.08);opacity:1}}" +
+    /* the touch points: small flat circles in each person's colour that beat very softly, so
+       you know something is there. Their names show for a moment the first time (and on hover) */
+    ".slr .spots .spot{--rot:0deg!important;--pc:#FFD6A0;width:44px!important;height:44px!important;border:0!important;background:none!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;overflow:visible;display:block}" +
+    ".slr .spots .spot[data-k=reader]{--pc:#F4B26E}.slr .spots .spot[data-k=storyteller]{--pc:#F2D2A2}.slr .spots .spot[data-k=host]{--pc:#F0C68E}.slr .spots .spot[data-k=dreamer]{--pc:#C3B2E4}" +
+    ".slr .spots .spot::before,.slr .spots .spot::after{content:'';position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:var(--pc);pointer-events:none}" +
+    ".slr .spots .spot::before{z-index:1;animation:slrBeat 3.6s ease-in-out infinite;transition:opacity .6s ease}" +
+    ".slr .spots .spot::after{opacity:0;animation:slrRing 3.6s ease-out infinite}" +
+    ".slr .spots .spot:nth-child(2)::before,.slr .spots .spot:nth-child(2)::after{animation-delay:-.9s}.slr .spots .spot:nth-child(3)::before,.slr .spots .spot:nth-child(3)::after{animation-delay:-1.8s}.slr .spots .spot:nth-child(4)::before,.slr .spots .spot:nth-child(4)::after{animation-delay:-2.7s}" +
+    "@keyframes slrBeat{0%,100%{transform:scale(.9)}50%{transform:scale(1.06)}}" +
+    "@keyframes slrRing{0%{transform:scale(1);opacity:.35}70%,100%{transform:scale(2.4);opacity:0}}" +
     ".slr .spots .spot i{display:none!important}" +
-    ".slr .spots .spot:hover,.slr .spots .spot:focus-visible{transform:translate(-50%,-50%) scale(1.25);outline:none}" +
+    ".slr .spots .spot:hover,.slr .spots .spot:focus-visible{transform:translate(-50%,-50%) scale(1.2);outline:none}" +
     /* the chosen one steps back: its lamp is lit there now */
-    ".slr .spots .spot.cur::before{opacity:.35;animation:none}" +
+    ".slr .spots .spot.cur::before{opacity:.4;animation:none}.slr .spots .spot.cur::after{animation:none}" +
     /* the name: plain painted-world text, no chip */
-    ".slr .spots .spot b{left:calc(100% + 2px)!important;padding:0!important;background:none!important;border:0!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;" +
+    ".slr .spots .spot b{transform:translateY(-50%)!important;left:calc(100% + 2px)!important;padding:0!important;background:none!important;border:0!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;" +
     "font:300 16px/1.2 var(--font)!important;letter-spacing:.01em!important;color:var(--ink)!important;text-shadow:0 0 14px var(--bg),0 0 4px var(--bg);transition:opacity .8s ease!important}" +
     ".slr .spots .spot.left b{left:auto!important;right:calc(100% + 2px)!important}" +
     ".slr .spots.ping .spot b,.slr .spots .spot.say b{opacity:1;transition-duration:.4s!important}" +
     ".slr .spots .spot.cur:not(.say) b{opacity:0!important}" +
-    ".slr .spots.ping .spot::before{animation:slrBurst 1.4s ease-out 3}" +
-    "@keyframes slrBurst{0%{transform:scale(.9)}35%{transform:scale(1.4);opacity:1}100%{transform:scale(.95);opacity:.85}}" +
+    ".slr .spots.ping .spot::after{animation:slrRing 1.4s ease-out 3}" +
     /* while it builds, the drawing settles in (a slow zoom), so every bit of scroll shows something */
     ".slr .stage{transform-origin:50% 60%;will-change:transform}"
 
