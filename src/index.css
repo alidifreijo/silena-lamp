@@ -151,7 +151,7 @@ html.lenis, html.lenis body { height: auto; }
     opacity: 0; transition: opacity 0.6s ease;
 }
 .rail-seg { position: relative; display: flex; align-items: center; justify-content: flex-end; gap: 10px; height: 46px; }
-.rail-track { position: relative; width: 2px; height: 100%; border-radius: 2px; background: color-mix(in srgb, var(--ink) 18%, transparent); overflow: hidden; }
+.rail-track { position: relative; width: 2px; height: 100%; border-radius: 2px; background: color-mix(in srgb, var(--ink) 28%, transparent); overflow: hidden; }
 .rail-fill { position: absolute; inset: 0; background: var(--ink); transform-origin: 50% 0; transform: scaleY(0); }
 .rail-n {
     font-size: 10px; letter-spacing: 0.12em; color: var(--muted);
@@ -238,3 +238,10 @@ html[data-framer-theme="light"] .page-grain { opacity: 0.18; }
     .foot-base { flex-direction: column; }
 }
 html.in-foot .rail { opacity: 0 !important; }
+
+/* one scroll indicator: the chapter rail (the native bar is hidden; scrolling still works everywhere) */
+html { scrollbar-width: none; }
+html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
+/* the rail follows the light of Light Rituals like the nav */
+html[data-nav-tone="light"] .rail { --ink: #2e2216; --muted: rgba(46, 34, 22, 0.62); }
+html[data-nav-tone="dark"] .rail { --ink: #f4e9dc; --muted: rgba(244, 233, 220, 0.6); }

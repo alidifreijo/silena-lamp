@@ -23,7 +23,7 @@ const LAYOUT =
     ".slr .lead{font-size:19px;line-height:1.6;max-width:32ch}" +
     ".slr .card .n{font-size:clamp(28px,2.6vw,38px);gap:14px;margin:0 0 16px}" +
     ".slr .card .l{font-size:19px;line-height:1.6;margin:0 0 20px;max-width:34ch}" +
-    ".slr .card .r{font-size:14px;line-height:1.5}" +
+    ".slr .card .r{font-size:15px;line-height:1.5}" +
     /* a bigger house; its sketch guides may run past the drawing, the section clips them */
     ".slr{overflow:clip}.slr svg{width:100%;margin:0 auto;max-height:calc(100vh - 64px);overflow:visible;color:var(--ink)}" +
     /* ...but they stop short of the text column */

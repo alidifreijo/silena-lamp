@@ -27,10 +27,10 @@ const CSS = `.slx{position:relative;z-index:5;width:100%;font-family:'Outfit',ui
 .slx-track{position:absolute;left:42px;right:42px;bottom:40px;height:30px}
 .slx-line{position:absolute;left:0;right:0;top:0;height:1px;background:var(--line)}
 .slx-fill{position:absolute;left:0;top:0;height:1px;background:var(--ink)}
-.slx-labels{position:absolute;left:0;right:0;top:12px;display:flex;justify-content:space-between;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+.slx-labels{position:absolute;left:0;right:0;top:12px;display:flex;justify-content:space-between;font-size:13px;letter-spacing:.12em;text-transform:uppercase}
 .slx-labels span{color:var(--muted);transition:color .5s}
 .slx-labels span.on{color:var(--ink)}
-@media (max-width:640px){.slx-eb{left:20px}.slx-stmts{left:24px;right:24px;bottom:92px}.slx-stmt b{font-size:32px}.slx-track{left:24px;right:24px;bottom:34px}.slx-labels{font-size:10px;letter-spacing:.06em}}
+@media (max-width:640px){.slx-eb{left:20px}.slx-stmts{left:24px;right:24px;bottom:92px}.slx-stmt b{font-size:32px}.slx-track{left:24px;right:24px;bottom:34px}.slx-labels{font-size:11px;letter-spacing:.06em}}
 @media (prefers-reduced-motion:reduce){.slx-stmt{transition:none}}`
 
 /* ---------------------------------------------------------------------------

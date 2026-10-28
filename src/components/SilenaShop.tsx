@@ -53,7 +53,7 @@ const CSS = `
 .sls-qty button{width:48px;height:100%;border:0;background:none;cursor:pointer;font-size:20px}
 .sls-add{flex:1;height:56px;border:0;border-radius:999px;font:400 15px ${FONT};cursor:pointer;transition:transform .2s}
 .sls-add:active{transform:scale(.98)}
-.sls-perks{list-style:none;margin:0;padding:0;display:grid;gap:10px;font-size:14px}
+.sls-perks{list-style:none;margin:0;padding:0;display:grid;gap:10px;font-size:15px}
 .sls-perks li{display:flex;gap:10px;align-items:baseline}
 .sls-perks li::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.7;flex:none;transform:translateY(-2px)}
 .sls-specs{max-width:1360px;margin:96px auto 0;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:64px;align-items:start}
@@ -305,7 +305,7 @@ export default function SilenaShop(props) {
                 </div>
                 <div style={{ borderTop: `1px solid ${c.line}` }}>
                     {SPECS.map(([h, rows], i) => (
-                        <details key={h} open={i === 0} style={{ borderBottom: `1px solid ${c.line}` }}>
+                        <details key={h} name="sls-specs" open={i === 0} style={{ borderBottom: `1px solid ${c.line}` }}>
                             <summary>
                                 {h}
                                 <i />
@@ -320,7 +320,7 @@ export default function SilenaShop(props) {
                             </dl>
                         </details>
                     ))}
-                    <details style={{ borderBottom: `1px solid ${c.line}` }}>
+                    <details name="sls-specs" style={{ borderBottom: `1px solid ${c.line}` }}>
                         <summary>
                             Downloads
                             <i />
