@@ -10,6 +10,7 @@ import SilenaLightRituals from "./components/SilenaLightRituals.tsx"
 import SilenaShop from "./components/SilenaShop.tsx"
 import Progress from "./components/Progress.jsx"
 import HeroLamp from "./components/HeroLamp.jsx"
+import Footer from "./components/Footer.jsx"
 
 // the room's personas, as written for the site
 const ROOM = {
@@ -63,6 +64,9 @@ export default function App() {
             </div>
             <SilenaLightRituals />
             <SilenaShop />
+            <Footer />
+            {/* the paper grain over the whole page, day and night */}
+            <div className="page-grain" aria-hidden="true" />
         </div>
     )
 }

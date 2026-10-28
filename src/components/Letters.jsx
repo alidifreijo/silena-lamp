@@ -74,12 +74,12 @@ function Letter({ l, i }) {
     )
 }
 
-export default function Letters() {
+export default function Letters({ as: Tag = "h1", className = "silena-word", hidden = false }) {
     return (
-        <h1 className="silena-word" aria-label="Silena">
+        <Tag className={className} aria-label={hidden ? undefined : "Silena"} aria-hidden={hidden || undefined}>
             {L.map((l, i) => (
                 <Letter key={l.k} l={l} i={i} />
             ))}
-        </h1>
+        </Tag>
     )
 }

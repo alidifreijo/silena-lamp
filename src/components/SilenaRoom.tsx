@@ -79,6 +79,10 @@ const LAYOUT =
     ".slr .spots.ping .spot b,.slr .spots .spot.say b{opacity:1;transition-duration:.4s!important}" +
     ".slr .spots .spot.cur:not(.say) b{opacity:0!important}" +
     ".slr .spots.ping .spot::after{animation:slrRing 1.4s ease-out 3}" +
+    /* the same paper as Light Rituals: warm sand walls and floor (they go warm brown at night)
+       and the same coarse grain over the whole scene */
+    ".slr{--c-wallA:#E9D6B9!important;--c-wallB:#DDC6A4!important;--c-floor:#E4CDAA!important}" +
+    ".slr .slr-grain{position:absolute;inset:0;pointer-events:none;z-index:2;mix-blend-mode:overlay;opacity:.22;background:url(/grain.png) repeat;background-size:180px 180px}" +
     /* while it builds, the drawing settles in (a slow zoom), so every bit of scroll shows something */
     ".slr .stage{transform-origin:50% 60%;will-change:transform}"
 
@@ -524,6 +528,7 @@ export default function SilenaRoom(props: Props) {
 <div class="slr-eb" aria-hidden="true"><span>${esc(eyebrow)}</span></div>
 <div class="slr-pin">
 <div class="slr" data-mode="night">
+  <div class="slr-grain" aria-hidden="true"></div>
   <div class="slr-wrap">
     <div class="slr-text">
       <p class="eyebrow">${esc(eyebrow)}</p>

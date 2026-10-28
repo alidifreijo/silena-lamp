@@ -32,17 +32,21 @@ function toTop() {
 export default function Nav() {
     return (
         <nav className="nav" aria-label="Silena">
-            <div className="nav-home">
-                <button type="button" className="nav-btn" onClick={toTop} aria-label="Back to the top" title="Silena">
-                    {/* the lamp: a disc of glass with its hole, and the cable */}
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" aria-hidden="true">
-                        <circle cx="12" cy="10.5" r="7.5" />
-                        <circle cx="12" cy="10.5" r="2" />
-                        <path d="M12 18v4" />
-                    </svg>
-                </button>
-            </div>
+            {/* keeps the links centred; the chapter's eyebrow sits here */}
+            <div className="nav-home" aria-hidden="true" />
             <div className="nav-pill">
+                <a
+                    href="#top"
+                    className="nav-word"
+                    onClick={(e) => {
+                        e.preventDefault()
+                        toTop()
+                    }}
+                    aria-label="Silena, back to the top"
+                >
+                    Silena
+                </a>
+                <span className="nav-sep" aria-hidden="true" />
                 {LINKS.map(([k, l]) => (
                     <a
                         key={k}
