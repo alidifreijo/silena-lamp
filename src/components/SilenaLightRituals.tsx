@@ -20,8 +20,8 @@ const CSS = `.slx{position:relative;z-index:5;width:100%;font-family:'Outfit',ui
 .slx-grain{position:absolute;inset:0;pointer-events:none;opacity:.22;mix-blend-mode:overlay}
 .slx-eb{position:absolute;top:32px;left:42px;font-size:12px;line-height:14px;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);white-space:nowrap;transition:color .5s}
 .slx-stmts{position:absolute;left:42px;right:42px;bottom:108px;height:170px}
-.slx-stmt{position:absolute;left:0;bottom:0;width:min(640px,80vw);display:flex;flex-direction:column;gap:14px;opacity:0;transform:translateY(14px);transition:opacity .8s ease,transform 1s cubic-bezier(.22,.61,.36,1)}
-.slx-stmt.on{opacity:1;transform:none}
+.slx-stmt{position:absolute;left:0;bottom:0;width:min(640px,80vw);display:flex;flex-direction:column;gap:14px;opacity:0;transform:translateY(-8px);transition:opacity .35s ease,transform .5s ease}
+.slx-stmt.on{opacity:1;transform:none;transition:opacity .8s ease .38s,transform 1s cubic-bezier(.22,.61,.36,1) .38s}
 .slx-stmt b{max-width:15ch;font-weight:200;font-size:clamp(34px,4vw,60px);line-height:1.04;letter-spacing:-.02em;color:var(--ink);text-wrap:balance}
 .slx-stmt span{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .slx-track{position:absolute;left:42px;right:42px;bottom:40px;height:30px}
@@ -296,7 +296,7 @@ g2+=vec3(1.)*pow(max(dot(N,normalize(S1+V)),0.),14.)*.08;glow=mix(glow,g2,uShop)
 vec3 col=mix(off,glow,uOn);
 vec3 Rf=reflect(-V,N);float Fr=.04+.96*pow(fr,5.);
 float e=smoothstep(.45,.7,Rf.x)*smoothstep(-.55,.1,Rf.y)*(1.-smoothstep(.55,.9,Rf.y))+smoothstep(-.4,-.68,Rf.x)*smoothstep(-.35,.3,Rf.y)*(1.-smoothstep(.6,.95,Rf.y))*.65+smoothstep(.62,.92,Rf.y)*.75;
-col+=(vec3(e)+.06)*mix(.18,1.,Fr)*.22*uShop+vec3(1.)*pow(max(dot(Rf,normalize(vec3(.45,.55,.7))),0.),160.)*.5*uShop;
+col+=(vec3(e)+.06)*mix(.18,1.,Fr)*.12*uShop+vec3(1.)*pow(max(dot(Rf,normalize(vec3(.45,.55,.7))),0.),160.)*.22*uShop;
 gl_FragColor=vec4(col,uAlpha);}`,
         })
         const grp = new THREE.Group(), shade = new THREE.Mesh(geo, glass)
@@ -455,12 +455,13 @@ gl_FragColor=vec4(col,uAlpha);}`,
         // where the stage will be when the shop reaches the top (it is still sliding up underneath);
         // in the last moments the lamp rides along with the stage, so the cross-fade lines up
         const fin = a.top - b.top + a.height / 2, now = a.top - pr.top + a.height / 2
-        return { x: a.left - pr.left + a.width / 2, y: fin + (now - fin) * cl((out - 0.86) / 0.08), r: a.height * 0.28 }
+        return { x: a.left - pr.left + a.width / 2, y: fin + (now - fin) * cl((out - 0.86) / 0.08), r: a.height * 0.28, w: a.width, h: a.height }
     }
     function outroLamp(c, M, on0, out, bgK) {
         // the room fades into the page colour
         ctx.save()
-        ctx.globalAlpha = bgK
+        // ...and then thins away, revealing the shop's card, which the lamp is heading for
+        ctx.globalAlpha = bgK * (1 - ease(cl((out - 0.66) / 0.18)))
         ctx.fillStyle = o.mode === "light" ? PG_DAY : "#261E13"
         ctx.fillRect(0, 0, W, H)
         ctx.restore()
@@ -478,6 +479,18 @@ gl_FragColor=vec4(col,uAlpha);}`,
         const x1 = start[0] + (hx - start[0]) * a1, y1 = start[1] + (hy - start[1]) * a1, r1 = rs + (hr - rs) * a1
         const cx = x1 + (tg.x - x1) * a2, cy = y1 + (tg.y - y1) * a2, r = r1 + (tg.r - r1) * a2
         const lampCol = `rgba(${M.lamp},1)`, u = 0.5 * a1 + 0.5 * a2
+        // the shop's card takes shape around where the lamp is heading, so it lands somewhere
+        const cardK = ease(cl((out - 0.68) / 0.2))
+        if (cardK > 0 && tg.w) {
+            ctx.save()
+            ctx.globalAlpha = cardK
+            ctx.fillStyle = o.mode === "light" ? "#E3D6C4" : "#2E2418"
+            const cw = tg.w * (0.94 + 0.06 * cardK), ch = tg.h * (0.94 + 0.06 * cardK)
+            ctx.beginPath()
+            ctx.roundRect(tg.x - cw / 2, tg.y - ch / 2, cw, ch, 28)
+            ctx.fill()
+            ctx.restore()
+        }
         // its glow, warming the space around it as the room goes
         const gr = ctx.createRadialGradient(cx, cy, r * 0.3, cx, cy, r * 3)
         gr.addColorStop(0, `rgba(255,226,185,${0.22 * bgK * (1 - 0.6 * wv)})`)
@@ -498,16 +511,15 @@ gl_FragColor=vec4(col,uAlpha);}`,
 
     // the lamp as a designer draws it: bezier paths (outer rim, front face, hole) with their anchor
     // points and handles, traced on as you scroll
-    const SEL = "#F0892A"
+    // the lamp as a designer sketches it: its curves traced on in a fine pencil line, with a few
+    // anchor points and handles, in the page's ink (no tool colours: it stays part of the dream)
     function vectorDrawing(l3, x0, y0, px, prog, alpha, ink) {
         const rings = [[1.0, 0.4, true], [0.62, 0.77, false], [0.165, 0.27, true]]
         const M = ([u, v]) => [x0 + u * px, y0 + v * px]
         ctx.save()
-        ctx.globalAlpha = alpha
         ctx.lineCap = "round"
         rings.forEach(([rr, yy, anchors], ri) => {
             const B = l3.bezierRing(rr, yy)
-            // the path, traced progressively (each ring a little after the previous one)
             const t = cl(prog * 1.25 - ri * 0.12)
             if (t <= 0) return
             const pts = []
@@ -519,9 +531,10 @@ gl_FragColor=vec4(col,uAlpha);}`,
                 }
             }
             const n = Math.max(2, Math.round(pts.length * t))
-            ctx.strokeStyle = SEL
-            ctx.lineWidth = ri === 1 ? 1 : 1.4
-            ctx.setLineDash(ri === 1 ? [4, 5] : [])
+            ctx.globalAlpha = alpha * (ri === 1 ? 0.4 : 0.7)
+            ctx.strokeStyle = ink
+            ctx.lineWidth = ri === 1 ? 0.8 : 1
+            ctx.setLineDash(ri === 1 ? [3, 6] : [])
             ctx.beginPath()
             pts.slice(0, n).forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)))
             ctx.stroke()
@@ -531,22 +544,16 @@ gl_FragColor=vec4(col,uAlpha);}`,
                 const at = cl((t - i * 0.25) / 0.12)
                 if (at <= 0) return
                 const [ax, ay] = M(a.p)
-                ctx.globalAlpha = alpha * at
-                // handles: thin lines to small round ends
-                ctx.strokeStyle = ink
-                ctx.lineWidth = 0.8
+                ctx.globalAlpha = alpha * at * 0.5
+                ctx.lineWidth = 0.7
                 for (const h of [a.hin, a.hout]) {
                     const [hx, hy] = M(h), ex = ax + (hx - ax) * at, ey = ay + (hy - ay) * at
                     ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ex, ey); ctx.stroke()
-                    ctx.beginPath(); ctx.arc(ex, ey, 2.6, 0, 7); ctx.fillStyle = SEL; ctx.fill()
+                    ctx.beginPath(); ctx.arc(ex, ey, 1.6, 0, 7); ctx.fillStyle = ink; ctx.fill()
                 }
-                // the anchor: a small square
-                ctx.fillStyle = o.mode === "light" ? "#F4EDE2" : "#261E13"
-                ctx.strokeStyle = SEL
-                ctx.lineWidth = 1.2
-                ctx.fillRect(ax - 3.5, ay - 3.5, 7, 7)
-                ctx.strokeRect(ax - 3.5, ay - 3.5, 7, 7)
-                ctx.globalAlpha = alpha
+                ctx.globalAlpha = alpha * at * 0.8
+                ctx.lineWidth = 0.9
+                ctx.beginPath(); ctx.arc(ax, ay, 3, 0, 7); ctx.stroke()
             })
         })
         ctx.restore()
@@ -755,7 +762,7 @@ gl_FragColor=vec4(col,uAlpha);}`,
     }
 
     /* ---------- scroll → state ---------- */
-    let prog = 0, active = false, shown = -2, wasLanded = false
+    let prog = 0, active = false, shown = -2, wasLanded = false, navTone = ""
     function read() {
         const r = sec.getBoundingClientRect(), len = r.height - H
         active = r.top <= 0.5
@@ -823,13 +830,17 @@ gl_FragColor=vec4(col,uAlpha);}`,
         } else {
             roomBox.style.display = "none"
             const c = camEnd()
-            ctx.drawImage(caches[ORDER[i]], 0, 0, W, H)
-            if (f > 0) { ctx.globalAlpha = f; ctx.drawImage(caches[ORDER[i + 1]], 0, 0, W, H); ctx.globalAlpha = 1 }
-            ctx.drawImage(liveSun(A, B, f, c), 0, 0, W, H)
-            particles(now, A, 1 - f)
-            particles(now, B, f)
             const bgK = ease(cl(out / 0.28))
-            guides(ctx, c, mix(A.ink, B.ink, f), 0.18 * (1 - bgK))
+            // once the room has gone into the page colour it is no longer drawn, so the page can
+            // open onto the shop's card underneath before the lamp lands in it
+            if (bgK < 0.999) {
+                ctx.drawImage(caches[ORDER[i]], 0, 0, W, H)
+                if (f > 0) { ctx.globalAlpha = f; ctx.drawImage(caches[ORDER[i + 1]], 0, 0, W, H); ctx.globalAlpha = 1 }
+                ctx.drawImage(liveSun(A, B, f, c), 0, 0, W, H)
+                particles(now, A, 1 - f)
+                particles(now, B, f)
+                guides(ctx, c, mix(A.ink, B.ink, f), 0.18 * (1 - bgK))
+            }
             setInk(A, B, f)
             const on = A.lampOn * (1 - f) + B.lampOn * f
             if (out <= 0) drawLamp(ctx, c, A, B, f, on)
@@ -838,7 +849,20 @@ gl_FragColor=vec4(col,uAlpha);}`,
             track.style.opacity = String(1 - bgK)
             // the painted grain stays on the lamp until it settles into the shop
             // (some of it stays to the very end: the shop's lamp picks up the same grain and lets it go)
-            grain.style.opacity = String(0.22 * (out > 0 ? 1 - 0.6 * ease(cl((out - 0.6) / 0.3)) : 1))
+            grain.style.opacity = String(0.22 * (out > 0 ? 1 - 0.6 * ease(cl((out - 0.84) / 0.14)) : 1))
+        }
+        // the nav follows the light on screen, and the day/night switch steps aside: here the
+        // time of day is the story
+        {
+            const r = sec.getBoundingClientRect()
+            const inR = !o.still && r.top <= 1 && r.bottom >= H * 0.5 && (clone ? empty > 0.6 : intro > 0.3) && out < 0.3
+            const tone = !inR ? "" : intro < 1 ? (first.dark ? "dark" : "light") : (f < 0.5 ? A : B).dark ? "dark" : "light"
+            if (tone !== navTone) {
+                navTone = tone
+                const de = document.documentElement
+                if (tone) de.setAttribute("data-nav-tone", tone)
+                else de.removeAttribute("data-nav-tone")
+            }
         }
         // the very end: this screen fades away over the shop, which is already in place below
         pin.style.opacity = String(1 - ease(cl((out - 0.9) / 0.1)))
@@ -890,6 +914,7 @@ gl_FragColor=vec4(col,uAlpha);}`,
     }
     return () => {
         cancelAnimationFrame(raf)
+        document.documentElement.removeAttribute("data-nav-tone")
         io.disconnect()
         window.removeEventListener("resize", onResize)
         L3 && L3.dispose && L3.dispose()

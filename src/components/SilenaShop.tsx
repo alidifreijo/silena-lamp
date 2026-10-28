@@ -31,6 +31,9 @@ const DOWNLOADS = ["Product sheet · PDF", "Assembly guide · PDF", "3D model ·
 // the real glass profile, flat against the wall on the left
 const SIDE = "M399.1,90.6 L401.8,75.2 L397.9,60.9 L388.1,49.9 L374.3,43.3 L360,40 L345.7,41.7 L332.5,47.7 L323.7,58.7 L319.3,75.2 L318.2,99.4 L318.2,200.6 L319.3,224.8 L323.7,241.3 L332.5,252.3 L345.7,258.4 L360,260 L374.3,256.7 L388.1,250.1 L397.9,239.1 L401.8,224.8 L399.1,209.4 Z"
 
+// the shop lamp keeps a touch of the illustration's grain and satin finish
+const REST = 0.16
+
 const CSS = `
 .sls{position:relative;width:100%;box-sizing:border-box;padding:120px 42px 120px;font-family:${FONT};font-weight:300}
 .sls *{box-sizing:border-box}
@@ -38,7 +41,7 @@ const CSS = `
 .sls-stage{position:sticky;top:96px;aspect-ratio:1/1;max-height:calc(100vh - 120px);width:100%;border-radius:28px;overflow:hidden;transition:background .9s}
 .sls-stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab;touch-action:pan-y}
 .sls-stage canvas:active{cursor:grabbing}
-.sls-mount{position:absolute;z-index:3;top:18px;left:18px;display:flex;gap:4px;padding:4px;border-radius:999px;transition:background .9s}
+.sls-mount{position:absolute;z-index:3;bottom:16px;left:16px;display:flex;gap:4px;padding:4px;border-radius:999px;transition:background .9s}
 .sls-mount button{border:0;background:none;border-radius:999px;padding:9px 16px;font:300 15px ${FONT};cursor:pointer;transition:background .3s,color .3s}
 .sls-buy{display:flex;flex-direction:column;gap:28px;padding-top:12px}
 .sls-h{margin:0;font-weight:200;font-size:clamp(48px,6vw,96px);line-height:.95;letter-spacing:-.03em}
@@ -101,7 +104,7 @@ export default function SilenaShop(props) {
         loadThree()
             .then((THREE) => {
                 if (!alive || !canvas.current) return
-                lamp.current = makeRealLamp(THREE, canvas.current, { mount, paint: 0.06 })
+                lamp.current = makeRealLamp(THREE, canvas.current, { mount, paint: REST })
                 lamp.current.colors(fin)
                 // Light Rituals lands its lamp right here: hold still, facing you, until it has
                 const rit = document.querySelector(".slx")
@@ -118,7 +121,7 @@ export default function SilenaShop(props) {
             const t0 = performance.now()
             const step = (t) => {
                 const k = Math.min(1, (t - t0) / 2600), e = 1 - Math.pow(1 - k, 3)
-                lamp.current?.paint(from + (0.06 - from) * e)
+                lamp.current?.paint(from + (REST - from) * e)
                 if (k < 1) praf = requestAnimationFrame(step)
             }
             praf = requestAnimationFrame(step)
@@ -141,6 +144,22 @@ export default function SilenaShop(props) {
             window.removeEventListener("silena-lamp-landed", onLanded)
             lamp.current?.dispose()
             lamp.current = null
+        }
+    }, [])
+    // once the shop reaches the nav, a soft veil sits behind it so nothing collides with it
+    useEffect(() => {
+        const sec = document.getElementById("shop")
+        if (!sec) return
+        const de = document.documentElement
+        const on = () => {
+            const r = sec.getBoundingClientRect()
+            de.classList.toggle("in-shop", r.top < 60 && r.bottom > 100)
+        }
+        on()
+        window.addEventListener("scroll", on, { passive: true })
+        return () => {
+            window.removeEventListener("scroll", on)
+            de.classList.remove("in-shop")
         }
     }, [])
     useEffect(() => lamp.current?.colors(fin), [fin])
@@ -175,7 +194,7 @@ export default function SilenaShop(props) {
                         ))}
                     </div>
                     <canvas ref={canvas} aria-label="Silena lamp, drag to turn it all the way round" />
-                    <p style={{ position: "absolute", left: 0, right: 0, bottom: 22, margin: 0, textAlign: "center", fontSize: 13, pointerEvents: "none", ...muted }}>Drag to turn it 360°</p>
+                    <p style={{ position: "absolute", right: 22, bottom: 30, margin: 0, textAlign: "right", fontSize: 14, pointerEvents: "none", ...muted }}>Drag to turn it 360°</p>
                 </div>
 
                 <div className="sls-buy">

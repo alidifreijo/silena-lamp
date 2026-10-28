@@ -4,7 +4,7 @@
 //  2. Images bloom around and over the sentence, each drifting at its own speed, then fade away.
 // Colours follow the Silena day/night switch. The eyebrow sits at the nav's height
 // (top 32px, left 42px) for as long as the section is pinned.
-import { useEffect, useRef, type CSSProperties } from "react"
+import { useEffect, useRef, useState, type CSSProperties } from "react"
 import { motion, useScroll, useTransform, useSpring, type MotionValue } from "framer-motion"
 import { useSilenaMode } from "./useSilenaMode.js"
 
@@ -17,13 +17,15 @@ const FONT = "'Outfit', sans-serif"
 const BALANCE = { textWrap: "balance" } as unknown as CSSProperties
 const IMAGES = [1, 2, 3, 4, 5].map((i) => `/images/feel-${i}.jpg`)
 
-// scattered layout (centre x/y in %, width in vw — never smaller than min px on phones, aspect w/h, drift speed)
+// photos live in the side margins (centre x/y in %, width in vw, aspect w/h, drift speed): they
+// never cross the words in the middle. On phones there are no margins, so the words step back
+// once they have been read and the photos pass over them.
 const SLOTS = [
-    { x: 11, y: 28, w: 16, min: 120, r: 0.75, s: 1.1 },
-    { x: 79, y: 20, w: 17, min: 130, r: 0.75, s: 0.8 },
-    { x: 24, y: 76, w: 17, min: 130, r: 1, s: 1.3 },
-    { x: 86, y: 70, w: 19, min: 140, r: 0.75, s: 1.2 },
-    { x: 58, y: 86, w: 15, min: 115, r: 0.74, s: 1.0 },
+    { x: 11, y: 30, w: 15, min: 120, r: 0.75, s: 1.1 },
+    { x: 89, y: 24, w: 15, min: 130, r: 0.75, s: 0.8 },
+    { x: 13, y: 80, w: 14, min: 130, r: 1, s: 1.3 },
+    { x: 88, y: 76, w: 16, min: 140, r: 0.75, s: 1.2 },
+    { x: 10, y: 95, w: 12, min: 115, r: 0.74, s: 0.8 },
 ]
 
 function Word({ p, start, end, children }: { p: MotionValue<number>; start: number; end: number; children: string }) {
@@ -31,14 +33,20 @@ function Word({ p, start, end, children }: { p: MotionValue<number>; start: numb
     return <motion.span style={{ opacity, display: "inline-block", marginRight: "0.26em" }}>{children}</motion.span>
 }
 
-function Floating({ p, src, i, slot, boxRef }: { p: MotionValue<number>; src: string; i: number; slot: (typeof SLOTS)[number]; boxRef: (el: HTMLDivElement | null) => void }) {
+// each photo switches on by itself: a warm halo behind it blooms as it arrives, as if the lamp
+// lit it, and settles to a faint glow
+function Floating({ p, src, i, slot }: { p: MotionValue<number>; src: string; i: number; slot: (typeof SLOTS)[number] }) {
     const t = 0.5 + i * 0.05
     const opacity = useTransform(p, [t, t + 0.06, 0.86, 0.98], [0, 1, 1, 0])
-    const scale = useTransform(p, [t, t + 0.1], [0.9, 1])
+    const scale = useTransform(p, [t, t + 0.1], [0.94, 1])
     const y = useTransform(p, [t, 1], [`${16 * slot.s}vh`, `${-30 * slot.s}vh`])
+    const halo = useTransform(p, [t, t + 0.05, t + 0.14], [0, 1, 0.3])
+    const haloScale = useTransform(p, [t, t + 0.05, t + 0.14], [0.7, 1.08, 1])
+    const lit = useTransform(p, [t, t + 0.05, t + 0.14], [0.55, 1.12, 1])
+    const filter = useTransform(lit, (v) => `brightness(${v.toFixed(3)}) saturate(${(0.7 + v * 0.3).toFixed(3)})`)
     return (
         <motion.div
-            ref={boxRef}
+            className="slm-photo"
             style={{
                 position: "absolute",
                 left: `${slot.x}%`,
@@ -50,12 +58,26 @@ function Floating({ p, src, i, slot, boxRef }: { p: MotionValue<number>; src: st
                 scale,
                 opacity,
                 zIndex: 1,
-                borderRadius: 6,
-                overflow: "hidden",
-                boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
             }}
         >
-            <img src={src} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+            <motion.div
+                aria-hidden
+                style={{
+                    position: "absolute",
+                    inset: "-28%",
+                    borderRadius: "50%",
+                    background: "radial-gradient(closest-side, rgba(255,196,128,0.38), rgba(255,170,90,0.14) 55%, rgba(255,170,90,0) 100%)",
+                    filter: "blur(14px)",
+                    opacity: halo,
+                    scale: haloScale,
+                }}
+            />
+            <motion.img
+                src={src}
+                alt=""
+                loading="lazy"
+                style={{ position: "relative", width: "100%", height: "100%", objectFit: "cover", display: "block", borderRadius: 6, boxShadow: "0 20px 60px rgba(0,0,0,0.25)", filter }}
+            />
         </motion.div>
     )
 }
@@ -79,38 +101,15 @@ export default function SilenaManifesto(props) {
 
     const words = text.split(/\s+/).filter(Boolean)
 
-    // a soft warm light that drifts from one image to the next as each one arrives, as if the lamp
-    // were looking at them
-    const boxes = useRef<(HTMLDivElement | null)[]>([])
-    const pinRef = useRef<HTMLDivElement>(null)
-    const frameRef = useRef<HTMLDivElement>(null)
-    const labelRef = useRef<HTMLSpanElement>(null)
+    // phones: the words have been read by the time the photos come, so they step back
+    const [narrow, setNarrow] = useState(false)
     useEffect(() => {
-        let raf = 0, cur = null, shown = 0
-        const tick = () => {
-            raf = requestAnimationFrame(tick)
-            const fr = frameRef.current, pin = pinRef.current
-            if (!fr || !pin) return
-            const v = p.get()
-            let act = -1
-            IMAGES.forEach((_, i) => { if (v >= 0.5 + i * 0.05 + 0.02) act = i })
-            const on = act >= 0 && v < 0.86
-            shown += ((on ? 1 : 0) - shown) * 0.15
-            fr.style.opacity = shown.toFixed(3)
-            if (act < 0 || !boxes.current[act]) return
-            const a = boxes.current[act].getBoundingClientRect(), b = pin.getBoundingClientRect()
-            const t = { x: a.left - b.left, y: a.top - b.top, w: a.width, h: a.height }
-            if (!cur) cur = { ...t }
-            // it glides over to the new image, a little behind it, like a cursor would
-            for (const k of ["x", "y", "w", "h"]) cur[k] += (t[k] - cur[k]) * 0.16
-            fr.style.transform = `translate(${cur.x - 60}px,${cur.y - 60}px)`
-            fr.style.width = cur.w + 120 + "px"
-            fr.style.height = cur.h + 120 + "px"
-            if (labelRef.current) labelRef.current.textContent = `Feel · 0${act + 1} / 0${IMAGES.length}`
-        }
-        raf = requestAnimationFrame(tick)
-        return () => cancelAnimationFrame(raf)
-    }, [p])
+        const q = () => setNarrow(window.innerWidth <= 860)
+        q()
+        window.addEventListener("resize", q)
+        return () => window.removeEventListener("resize", q)
+    }, [])
+    const textBack = useTransform(p, [0.48, 0.56, 0.9, 0.98], [1, narrow ? 0.18 : 1, narrow ? 0.18 : 1, 1])
     const span = 0.38
 
     return (
@@ -127,7 +126,6 @@ export default function SilenaManifesto(props) {
                     padding: "0 56px",
                 }}
                 className="slm-pin"
-                ref={pinRef}
             >
                 <motion.div
                     aria-hidden
@@ -146,23 +144,16 @@ export default function SilenaManifesto(props) {
                 </span>
 
                 {IMAGES.map((src, i) => (
-                    <Floating key={i} p={p} src={src} i={i} slot={SLOTS[i]} boxRef={(el) => (boxes.current[i] = el)} />
+                    <Floating key={i} p={p} src={src} i={i} slot={SLOTS[i]} />
                 ))}
-                <div className="sel-frame" ref={frameRef} aria-hidden="true">
-                    <span className="sel-label" ref={labelRef} />
-                    <i className="tl" />
-                    <i className="tr" />
-                    <i className="bl" />
-                    <i className="br" />
-                </div>
 
-                <div style={{ position: "relative", zIndex: 2, maxWidth: 1080, textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 48 }}>
+                <motion.div className="slm-words" style={{ position: "relative", zIndex: 2, maxWidth: "min(1080px, 58vw)", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 40, opacity: textBack, marginTop: "-6vh" }}>
                     <p
                         style={{
                             margin: 0,
                             fontFamily: FONT,
                             fontWeight: 200,
-                            fontSize: "clamp(30px, 3.6vw, 58px)",
+                            fontSize: "clamp(28px, 3.1vw, 54px)",
                             lineHeight: 1.18,
                             letterSpacing: "-0.02em",
                             color: c.text,
@@ -190,7 +181,7 @@ export default function SilenaManifesto(props) {
                     >
                         {coda}
                     </motion.span>
-                </div>
+                </motion.div>
             </div>
         </section>
     )

@@ -39,9 +39,10 @@ vec3 off=uTint*(.7+.12*d1)*mix(1.,.62,thick)+uTint*uTint*.16*(1.-thick)+vec3(1.)
 vec3 glow=mix(uCore,uRim,smoothstep(.25,1.,fr))*(1.-.22*thick);
 glow*=mix(.78,1.,smoothstep(.17,.45,r))*mix(1.,.9,smoothstep(.6,1.,r))*(.94+.08*d1);
 vec3 col=mix(off,glow,uOn);
-col+=env*mix(.12,.7,F)*mix(.42,.18,uOn);
-col+=vec3(1.)*pow(max(dot(R,normalize(vec3(.45,.55,.7))),0.),36.)*mix(.32,.18,uOn);
-col+=vec3(1.)*pow(max(dot(R,normalize(vec3(-.6,.3,.75))),0.),18.)*.07;
+float gl=1.-.7*uPaint;
+col+=env*mix(.08,.46,F)*mix(.4,.18,uOn)*gl;
+col+=vec3(1.)*pow(max(dot(R,normalize(vec3(.45,.55,.7))),0.),36.)*mix(.2,.12,uOn)*gl*gl;
+col+=vec3(1.)*pow(max(dot(R,normalize(vec3(-.6,.3,.75))),0.),18.)*.07*gl;
 float g=h(floor(gl_FragCoord.xy/(1.+2.*uPaint)));
 col=mix(col,col*vec3(1.03,.98,.9)*.94+.025,uPaint*.6);
 col+=(g-.5)*(.02+.14*uPaint);
@@ -92,7 +93,7 @@ gl_FragColor=vec4(col,uAlpha);}`,
         g.fillRect(0, 0, 256, 256)
         return new THREE.CanvasTexture(c)
     }
-    const shadowM = new THREE.MeshBasicMaterial({ map: tex([[0, "rgba(20,10,4,.45)"], [0.35, "rgba(20,10,4,.3)"], [0.7, "rgba(20,10,4,.08)"], [1, "rgba(20,10,4,0)"]]), transparent: true, depthWrite: false })
+    const shadowM = new THREE.MeshBasicMaterial({ map: tex(Array.from({ length: 13 }, (_, i) => { const o = i / 12; return [o, `rgba(20,10,4,${(0.36 * Math.exp(-o * o * 3.2) * (1 - o)).toFixed(3)})`] })), transparent: true, depthWrite: false })
     // a wide, very soft glow (gaussian falloff)
     const haloM = new THREE.MeshBasicMaterial({
         map: tex(Array.from({ length: 13 }, (_, i) => { const o = i / 12; return [o, `rgba(255,255,255,${(0.42 * Math.exp(-o * o * 4.2) * (1 - o)).toFixed(3)})`] })),

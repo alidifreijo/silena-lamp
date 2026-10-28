@@ -159,15 +159,6 @@ html.lenis, html.lenis body { height: auto; }
 .rail-seg.on .rail-n { opacity: 1; transform: none; }
 @media (max-width: 640px) { .rail { right: 6px; gap: 6px; } .rail-seg { height: 34px; } .rail-n { display: none; } }
 
-/* ---------- 01 Feel: a soft light that drifts from image to image as each one arrives ---------- */
-.sel-frame {
-    position: absolute; left: 0; top: 0; z-index: 0; pointer-events: none; opacity: 0;
-    border-radius: 28px;
-    background: radial-gradient(closest-side, rgba(255, 196, 128, 0.32), rgba(255, 176, 96, 0.12) 60%, rgba(255, 176, 96, 0) 100%);
-    filter: blur(18px);
-}
-.sel-frame i, .sel-label { display: none; }
-
 /* ---------- the lamp that leaves the hero photo ---------- */
 .hero-lamp {
     position: fixed; left: 0; top: 0; z-index: 4; pointer-events: none;
@@ -180,3 +171,22 @@ html.lenis, html.lenis body { height: auto; }
     mix-blend-mode: screen;
 }
 html[data-framer-theme="light"] .light-wash { mix-blend-mode: soft-light; }
+
+/* ---------- the nav follows the light of the scene in Light Rituals ---------- */
+.nav-pill, .nav-btn, .silena-bag-btn { transition: background-color .6s var(--ease), color .6s var(--ease) !important; }
+.nav .silena-switch { transition: opacity .5s var(--ease); }
+html[data-nav-tone] .nav .silena-switch { opacity: 0; pointer-events: none; }
+html[data-nav-tone="light"] .nav { --ink: #2e2216; --nav-bg: rgba(244, 236, 224, 0.55); }
+html[data-nav-tone="dark"] .nav { --ink: #f4e9dc; --nav-bg: rgba(30, 23, 15, 0.45); }
+html[data-nav-tone] .nav .silena-bag-btn { background: var(--nav-bg) !important; color: var(--ink) !important; }
+
+/* ---------- in the shop, content passes under a soft veil behind the nav ---------- */
+.nav::before {
+    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 120px; pointer-events: none; z-index: -1;
+    background: linear-gradient(var(--bg) 45%, color-mix(in srgb, var(--bg) 0%, transparent));
+    opacity: 0; transition: opacity .5s var(--ease);
+}
+html.in-shop .nav::before { opacity: 1; }
+
+/* 01 Feel on phones: the words use the full width (the photos pass over them once read) */
+@media (max-width: 860px) { .slm-words { max-width: 100% !important; } }

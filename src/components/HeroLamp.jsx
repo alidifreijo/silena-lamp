@@ -37,10 +37,10 @@ export default function HeroLamp() {
             const phone = W <= 640, posX = phone ? 0.3 : 0.5, posY = phone ? 1 : 0.3
             const dw = Math.max(hr.width, hr.height * PHOTO.aspect), dh = dw / PHOTO.aspect
             const px = hr.left + (hr.width - dw) * posX + PHOTO.u * dw, py = hr.top + (hr.height - dh) * posY + PHOTO.v * dh, pr = PHOTO.r * dw
-            // 2. its place in 01 Feel: low in the middle, like a sun below the words, rising a little
+            // 2. its place in 01 Feel: small and whole, low in the middle under the words, rising a little
             // as they light up (never behind the text, so it stays readable)
-            const tr = Math.min(H * 0.19, W * (phone ? 0.26 : 0.15))
-            const tx = W * 0.5, ty = H + tr * 0.25 - tr * 0.55 * ease(cl((-fr.top / Math.max(1, fr.height - H) - 0.05) / 0.45))
+            const tr = Math.min(H * 0.115, W * (phone ? 0.2 : 0.085))
+            const tx = W * 0.5, ty = H - tr * 1.5 - tr * 0.25 * ease(cl((-fr.top / Math.max(1, fr.height - H) - 0.05) / 0.45))
             // progress: h through the hero leaving, f through the pinned Feel section
             const h = cl(-hr.top / Math.max(1, hr.height)), f = cl(-fr.top / Math.max(1, fr.height - H))
             const lift = ease(cl((h - 0.12) / 0.88))

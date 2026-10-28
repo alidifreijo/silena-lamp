@@ -339,7 +339,7 @@ export function mount(root: HTMLElement, COPY: any, NIGHTL: string, DAYL: string
       colors:{wood:'#BC8659',walnut:'#7E5337',cream:'#F2E9D7',olive:'#6E7C4A',green:'#3F6044',red:'#D45B42',mustard:'#E2AE45',blue:'#5C87B3',ink:'#2E2A26',terra:'#C7744E',pink:'#E8B6A8',glass:'#C9DAD5',leaf:'#456142',wallA:'#E2D9CC',wallB:'#D3C9BB',floor:'#EAE2D6',bgD:'#D8CFC2',bgN:'#16110C'},
       personas:Object.fromEntries(Object.entries(R_).map(([k,p])=>[k,{lamp:p.lamp,acc:p.acc}]))};
     /* look chosen by Ali (22 Oct) */
-    Object.assign(LOOK_DEF,{paint:0,brush:0,canvas:.3,grain:.27,wobble:8.5,round:9.6,hiT:95,shR:62,darkN:.65,glowN:0,glowD:0,pool:.17,sunK:1.25,sofaBack:'one'});
+    Object.assign(LOOK_DEF,{paint:0,brush:0,canvas:.3,grain:.27,wobble:8.5,round:9.6,hiT:95,shR:62,darkN:.5,glowN:0,glowD:0,pool:.17,sunK:1.25,sofaBack:'one'});
     Object.assign(LOOK_DEF.colors,{wood:'#5f3a1c',olive:'#72813b',green:'#29655b',wallA:'#ecdac1',wallB:'#d7c7b2',floor:'#ac9777',bgN:'#322415'});
     LOOK_DEF.personas.storyteller.lamp='#dc9d50';
     let look=clone(LOOK_DEF);

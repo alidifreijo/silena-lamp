@@ -17,7 +17,8 @@ import { CSS, mount } from "./SilenaRoomCore.tsx"
 /* layout tweaks for the page (kept here so they are quick to change) */
 const LAYOUT =
     /* larger, airier text column */
-    ".slr .slr-wrap{grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:32px;padding:72px 56px 32px}" +
+    /* the text keeps its distance from the drawing, whatever the screen */
+    ".slr .slr-wrap{grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:clamp(56px,7vw,150px);padding:72px clamp(56px,6vw,120px) 32px}" +
     ".slr .slr-h{font-size:clamp(40px,4.6vw,76px);line-height:1.02;margin:0 0 32px}" +
     ".slr .lead{font-size:19px;line-height:1.6;max-width:32ch}" +
     ".slr .card .n{font-size:clamp(28px,2.6vw,38px);gap:14px;margin:0 0 16px}" +
@@ -25,6 +26,9 @@ const LAYOUT =
     ".slr .card .r{font-size:14px;line-height:1.5}" +
     /* a bigger house; its sketch guides may run past the drawing, the section clips them */
     ".slr{overflow:clip}.slr svg{width:100%;margin:0 auto;max-height:calc(100vh - 64px);overflow:visible;color:var(--ink)}" +
+    /* ...but they stop short of the text column */
+    ".slr .stage{clip-path:inset(-40vh -50vw -40vh -24px)}" +
+    "@media (max-width:860px){.slr .stage{clip-path:none}}" +
     ".slr .slr-guide{fill:none;stroke-width:1.1px;opacity:.34;vector-effect:non-scaling-stroke;stroke-linecap:round}.slr .slr-guide2{opacity:.16;stroke-width:.9px}" +
     /* the dreamer's touch point sits beside the record, not on it */
     ".slr .spot[data-k=\"dreamer\"]{margin:-30px 0 0 34px}" +
@@ -54,19 +58,31 @@ const LAYOUT =
     "body[data-framer-theme=\"light\"] .slr-eb span{color:rgba(46,34,22,.62)}" +
     /* entry: line-drawing twins of the pieces, and the touch points' first pulse */
     ".slr .slr-sk,.slr .slr-sk *{fill:none!important;stroke:var(--ink)!important;stroke-width:1.25px!important;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}" +
-    "@keyframes slrPing{0%{box-shadow:0 0 0 0 rgba(255,226,180,.6)}70%{box-shadow:0 0 0 22px rgba(255,226,180,0)}100%{box-shadow:0 0 0 22px rgba(255,226,180,0)}}" +
-    ".slr .spots.ping .spot{animation:slrPing 1.4s ease-out 3}" +
-    /* the touch points are points of light: a bright core in a soft warm halo, breathing gently */
-    ".slr .spots .spot{--rot:0deg;width:16px!important;height:16px!important;border-radius:50%!important;border:0!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;" +
-    "background:radial-gradient(circle,#fff 0 22%,rgba(255,232,196,.95) 38%,rgba(255,196,128,.45) 62%,rgba(255,196,128,0) 72%)!important;" +
-    "box-shadow:0 0 12px 3px rgba(255,204,146,.5),0 0 32px 10px rgba(255,180,110,.2)!important;animation:slrGlow 3.2s ease-in-out infinite}" +
-    ".slr .spots .spot:nth-child(2){animation-delay:-.8s}.slr .spots .spot:nth-child(3){animation-delay:-1.6s}.slr .spots .spot:nth-child(4){animation-delay:-2.4s}" +
+    /* the touch points are painted pools of light, in each person's colour, with the room's grain.
+       Their names show for a moment the first time (and on hover), right where the eye already is */
+    ".slr .spots .spot{--rot:0deg;--pc:#FFD6A0;width:54px!important;height:46px!important;border:0!important;background:none!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;overflow:visible;display:block}" +
+    ".slr .spots .spot[data-k=reader]{--pc:#FFB066}.slr .spots .spot[data-k=storyteller]{--pc:#FFD199}.slr .spots .spot[data-k=host]{--pc:#FFCF8F}.slr .spots .spot[data-k=dreamer]{--pc:#C9B8EC}" +
+    ".slr .spots .spot::before{content:'';position:absolute;inset:0;border-radius:54% 46% 58% 42% / 48% 56% 44% 52%;" +
+    "background:radial-gradient(closest-side,color-mix(in srgb,var(--pc) 35%,#fff) 0,color-mix(in srgb,var(--pc) 80%,transparent) 30%,color-mix(in srgb,var(--pc) 30%,transparent) 62%,transparent 100%);" +
+    "filter:blur(2px);mix-blend-mode:screen;animation:slrBreath 4.2s ease-in-out infinite;transition:opacity .6s ease}" +
+    ".slr[data-mode=day] .spots .spot::before{mix-blend-mode:normal;background:radial-gradient(closest-side,#fff 0,color-mix(in srgb,var(--pc) 85%,#fff) 30%,color-mix(in srgb,var(--pc) 40%,transparent) 62%,transparent 100%)}" +
+    ".slr .spots .spot::after{content:'';position:absolute;inset:4px;border-radius:50%;opacity:.5;mix-blend-mode:multiply;pointer-events:none;" +
+    "background:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .42 0 0 0 0 .3 0 0 0 1.6 -.55'/%3E%3C/filter%3E%3Crect width='60' height='60' filter='url(%23n)'/%3E%3C/svg%3E\");" +
+    "-webkit-mask:radial-gradient(closest-side,#000 30%,transparent);mask:radial-gradient(closest-side,#000 30%,transparent)}" +
+    ".slr .spots .spot:nth-child(2)::before{animation-delay:-1s}.slr .spots .spot:nth-child(3)::before{animation-delay:-2.1s}.slr .spots .spot:nth-child(4)::before{animation-delay:-3.2s}" +
+    "@keyframes slrBreath{0%,100%{transform:scale(.9);opacity:.8}50%{transform:scale(1.08);opacity:1}}" +
     ".slr .spots .spot i{display:none!important}" +
-    ".slr .spots .spot:hover,.slr .spots .spot:focus-visible{transform:translate(-50%,-50%) scale(1.45)}" +
-    ".slr .spots .spot.cur{background:radial-gradient(circle,#fff 0 22%,color-mix(in srgb,var(--acc) 70%,#fff) 40%,color-mix(in srgb,var(--acc) 45%,transparent) 62%,transparent 72%)!important;box-shadow:0 0 14px 4px color-mix(in srgb,var(--acc) 70%,transparent),0 0 40px 14px color-mix(in srgb,var(--acc) 30%,transparent)!important}" +
-    "@keyframes slrGlow{50%{box-shadow:0 0 16px 5px rgba(255,214,160,.66),0 0 44px 16px rgba(255,180,110,.3)}}" +
-    ".slr .spots.ping .spot{animation:slrBurst 1.4s ease-out 3}" +
-    "@keyframes slrBurst{0%{box-shadow:0 0 12px 3px rgba(255,204,146,.5),0 0 0 0 rgba(255,214,160,.55)}70%{box-shadow:0 0 18px 6px rgba(255,214,160,.7),0 0 0 26px rgba(255,214,160,0)}100%{box-shadow:0 0 12px 3px rgba(255,204,146,.5),0 0 0 26px rgba(255,214,160,0)}}" +
+    ".slr .spots .spot:hover,.slr .spots .spot:focus-visible{transform:translate(-50%,-50%) scale(1.25);outline:none}" +
+    /* the chosen one steps back: its lamp is lit there now */
+    ".slr .spots .spot.cur::before{opacity:.35;animation:none}" +
+    /* the name: plain painted-world text, no chip */
+    ".slr .spots .spot b{left:calc(100% + 2px)!important;padding:0!important;background:none!important;border:0!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;" +
+    "font:300 16px/1.2 var(--font)!important;letter-spacing:.01em!important;color:var(--ink)!important;text-shadow:0 0 14px var(--bg),0 0 4px var(--bg);transition:opacity .8s ease!important}" +
+    ".slr .spots .spot.left b{left:auto!important;right:calc(100% + 2px)!important}" +
+    ".slr .spots.ping .spot b,.slr .spots .spot.say b{opacity:1;transition-duration:.4s!important}" +
+    ".slr .spots .spot.cur:not(.say) b{opacity:0!important}" +
+    ".slr .spots.ping .spot::before{animation:slrBurst 1.4s ease-out 3}" +
+    "@keyframes slrBurst{0%{transform:scale(.9)}35%{transform:scale(1.4);opacity:1}100%{transform:scale(.95);opacity:.85}}" +
     /* while it builds, the drawing settles in (a slow zoom), so every bit of scroll shows something */
     ".slr .stage{transform-origin:50% 60%;will-change:transform}"
 
@@ -291,7 +307,7 @@ function assemble(host, root, pinVh, opts) {
         const spots = root.querySelector(".spots")
         if (spots) {
             spots.classList.add("ping")
-            setTimeout(() => spots.classList.remove("ping"), 4200)
+            setTimeout(() => spots.classList.remove("ping"), 4600)
         }
         const r = svg.getBoundingClientRect()
         if (!ms || r.bottom < 0 || r.top > window.innerHeight) return
@@ -557,6 +573,16 @@ export default function SilenaRoom(props: Props) {
         }
         // show the persona text as soon as it is written (right after the tap),
         // instead of waiting for the lamp to appear
+        // after a tap, the name stays a moment where you looked, then fades
+        const sayT = new Map()
+        root.querySelector("#slr-spots")?.addEventListener("click", (e) => {
+            const b = (e.target as HTMLElement).closest(".spot") as HTMLElement
+            if (!b) return
+            root.querySelectorAll(".spot.say").forEach((x) => x !== b && x.classList.remove("say"))
+            b.classList.add("say")
+            clearTimeout(sayT.get(b))
+            sayT.set(b, setTimeout(() => b.classList.remove("say"), 2200))
+        })
         const card = root.querySelector("#slr-card")
         const cn = root.querySelector("#slr-cn")
         let mo: MutationObserver | null = null
