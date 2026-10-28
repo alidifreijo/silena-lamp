@@ -92,7 +92,13 @@ html.lenis, html.lenis body { height: auto; }
     display: flex; align-items: center; gap: 34px; margin: 0; height: 262px;
     zoom: var(--silena-title-z, 1);
 }
-.silena-letter { display: block; flex: none; overflow: visible; }
+.silena-letter { display: block; flex: none; overflow: visible; position: relative; }
+.silena-letter-wrap { position: relative; display: block; flex: none; }
+.silena-letter-frost {
+    position: absolute; inset: 0; pointer-events: none;
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    -webkit-mask-size: 100% 100%; mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+}
 .silena-letter-glow { opacity: 0; transition: opacity 0.45s ease; }
 .silena-letter:hover .silena-letter-glow { opacity: 1; }
 .hero-text { position: absolute; top: 104px; width: 300px; display: flex; flex-direction: column; gap: 8px; }

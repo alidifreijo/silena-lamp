@@ -45,7 +45,12 @@ export const WORD_WIDTH = L.reduce((s, l) => s + l.w, 0) + 34 * (L.length - 1)
 
 function Letter({ l, i }) {
     const id = `sl${i}`
+    // the photo behind each letter is softly blurred inside its shape, so the glass reads clean
+    // (no photo grain through it)
+    const shape = `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='${l.vb}' preserveAspectRatio='none'><path d='${l.d}'/></svg>`)}")`
     return (
+        <span className="silena-letter-wrap" style={{ width: l.w, height: 262 }}>
+        <span className="silena-letter-frost" style={{ WebkitMaskImage: shape, maskImage: shape }} />
         <svg className="silena-letter" viewBox={l.vb} preserveAspectRatio="none" style={{ width: l.w, height: 262 }} aria-hidden="true">
             <defs>
                 <path id={`${id}p`} d={l.d} />
@@ -71,6 +76,7 @@ function Letter({ l, i }) {
             <use href={`#${id}p`} fill="rgb(255,255,255)" fillOpacity="0.2" />
             <use className="silena-letter-glow" href={`#${id}p`} fill={`url(#${id}g)`} />
         </svg>
+        </span>
     )
 }
 
