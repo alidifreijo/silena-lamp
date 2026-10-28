@@ -113,7 +113,7 @@ html.lenis, html.lenis body { height: auto; }
     .slx-eb { left: 42px !important; }
 }
 /* desktop: once the room is built it stays pinned a little while, to be played with */
-@media (min-width: 861px) { .slr-host > .slr-spacer { height: calc(270vh + 50vh) !important; } }
+@media (min-width: 861px) { .slr-host > .slr-spacer { height: calc(140vh + 40vh) !important; } }
 @media (max-width: 860px) { .slr .slr-wrap { grid-template-columns: minmax(0, 1fr) !important; } }
 
 /* ---------- phones ---------- */
