@@ -198,13 +198,12 @@ html.in-shop .nav::before { opacity: 1; }
 /* ---------- the word in the nav: back to the start ---------- */
 .nav-pill .nav-word { font-weight: 400; letter-spacing: 0.02em; }
 
-/* ---------- paper grain over the whole page ---------- */
-.page-grain {
-    position: fixed; inset: 0; z-index: 96; pointer-events: none;
-    background: url("/grain.png") repeat; background-size: 256px 256px;
-    mix-blend-mode: overlay; opacity: 0.14;
+/* ---------- paper grain, only in the page's background (buttons, images and text stay clean) ---------- */
+body, .page, .page .process, .page .slr, .page .foot {
+    background-image: url("/grain-bg.png"); background-size: 256px 256px; background-blend-mode: overlay;
 }
-html[data-framer-theme="light"] .page-grain { opacity: 0.18; }
+/* the room's drawing lets the grained background show through around it */
+.page .slr svg { background: transparent !important; }
 
 /* ---------- footer ---------- */
 .foot { position: relative; z-index: 3; background: var(--bg); color: var(--ink); padding: 140px 42px 28px; overflow: hidden; }

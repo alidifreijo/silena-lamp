@@ -65,8 +65,6 @@ export default function App() {
             <SilenaLightRituals />
             <SilenaShop />
             <Footer />
-            {/* the paper grain over the whole page, day and night */}
-            <div className="page-grain" aria-hidden="true" />
         </div>
     )
 }
