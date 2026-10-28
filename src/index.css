@@ -83,7 +83,7 @@ html.lenis, html.lenis body { height: auto; }
     transition: opacity 0.9s var(--ease);
 }
 /* SILENA sits exactly in the middle of the screen; its line hangs below it */
-.hero-center { position: absolute; inset: 0; display: grid; place-items: center; }
+.hero-center { position: absolute; inset: 14vh 0 0 0; display: grid; place-items: center; }
 .hero-center .label {
     position: absolute; left: 0; right: 0; text-align: center;
     top: calc(50% + var(--silena-title-z, 1) * 131px + 32px);
@@ -96,8 +96,8 @@ html.lenis, html.lenis body { height: auto; }
 .silena-letter-glow { opacity: 0; transition: opacity 0.45s ease; }
 .silena-letter:hover .silena-letter-glow { opacity: 1; }
 .hero-text { position: absolute; top: 104px; width: 300px; display: flex; flex-direction: column; gap: 8px; }
-.hero-credit { left: 42px; }
-.hero-note { right: 42px; }
+.hero-credit { left: 42px; top: 16px; }
+.hero-note { right: 42px; top: auto; bottom: 42px; }
 
 /* ---------- sections ---------- */
 .process { position: relative; z-index: 3; background: var(--bg); }
@@ -132,7 +132,7 @@ html.lenis, html.lenis body { height: auto; }
     .hero-photo img { object-position: 30% 100%; }
     .hero-text { top: 92px; width: calc(50% - 24px); }
     .hero-credit { left: 16px; }
-    .hero-note { right: auto; left: calc(50% + 8px); }
+    .hero-note { right: 16px; left: 16px; width: auto; top: auto; bottom: 28px; }
     .hero-text .body { font-size: 15px; }
 
     .section-eyebrow { top: 92px; left: 16px; }
@@ -196,8 +196,6 @@ html.in-shop .nav::before { opacity: 1; }
 
 /* ---------- the word in the nav: back to the start ---------- */
 .nav-pill .nav-word { font-weight: 400; letter-spacing: 0.02em; }
-.nav-sep { width: 1px; height: 16px; background: color-mix(in srgb, var(--ink) 25%, transparent); margin: 0 -4px; }
-@media (max-width: 640px) { .nav-sep { display: none; } }
 
 /* ---------- paper grain over the whole page ---------- */
 .page-grain {
@@ -227,15 +225,16 @@ html[data-framer-theme="light"] .page-grain { opacity: 0.18; }
 .foot-cols nav { display: flex; flex-direction: column; gap: 6px; }
 .foot-muted { color: var(--muted); }
 .foot-links { display: flex; gap: 20px; }
-.foot-sign { margin: 96px 0 24px; display: flex; justify-content: center; }
-.foot-word { zoom: var(--foot-z, 0.4) !important; gap: 34px; }
-.foot-word .silena-letter { opacity: 0.7; }
+.foot-sign { margin: 96px 0 40px; display: flex; justify-content: center; }
+.foot-mark { position: relative; width: 28px; height: 28px; border-radius: 50%; background: rgb(240, 137, 42); box-shadow: 0 0 16px 3px rgba(240, 137, 42, 0.6); display: grid; place-items: center; animation: footGlow 4s ease-in-out infinite; }
+.foot-mark i { width: 8px; height: 8px; border-radius: 50%; background: rgba(60, 40, 20, 0.3); }
+@keyframes footGlow { 50% { box-shadow: 0 0 26px 6px rgba(240, 137, 42, 0.45); } }
 .foot-base { display: flex; justify-content: space-between; gap: 16px; font-size: 12px; letter-spacing: 0.06em; color: var(--muted); }
 @media (max-width: 640px) {
     .foot { padding: 96px 16px 20px; }
     .foot-top { flex-direction: column; align-items: flex-start; }
     .foot-cols { grid-template-columns: minmax(0, 1fr); gap: 28px; }
-    .foot-sign { margin: 64px 0 16px; }
+    .foot-sign { margin: 64px 0 28px; }
     .foot-base { flex-direction: column; }
 }
 html.in-foot .rail { opacity: 0 !important; }

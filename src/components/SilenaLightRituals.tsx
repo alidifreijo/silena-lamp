@@ -883,7 +883,12 @@ gl_FragColor=vec4(col,uAlpha);}`,
 
     let raf = 0, visible = true, lastW = 0, lastH = 0
     const loop = (now) => { raf = 0; draw(now); if (visible && !o.still) raf = requestAnimationFrame(loop) }
-    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible && !raf) raf = requestAnimationFrame(loop) }, { rootMargin: "100px 0px" })
+    const io = new IntersectionObserver(([e]) => {
+        visible = e.isIntersecting
+        if (visible && !raf) raf = requestAnimationFrame(loop)
+        // off screen: the nav goes back to the site's own day/night
+        if (!visible && navTone) { navTone = ""; document.documentElement.removeAttribute("data-nav-tone") }
+    }, { rootMargin: "100px 0px" })
     io.observe(sec)
     let rt = 0
     const onResize = () => {

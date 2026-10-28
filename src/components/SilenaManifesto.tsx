@@ -92,6 +92,9 @@ export default function SilenaManifesto(props) {
     const ref = useRef<HTMLDivElement>(null)
     const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] })
     const p = useSpring(scrollYProgress, { stiffness: 110, damping: 30, mass: 0.4 })
+    // the words wait until the lamp has come down from the photo, so it never crosses them
+    const { scrollYProgress: enter } = useScroll({ target: ref, offset: ["start end", "start start"] })
+    const wordsIn = useTransform(enter, [0.8, 1], [0, 1])
 
     const codaOpacity = useTransform(p, [0.4, 0.5], [0, 1])
     const codaY = useTransform(p, [0.4, 0.5], [12, 0])
@@ -137,7 +140,7 @@ export default function SilenaManifesto(props) {
                     <Floating key={i} p={p} src={src} i={i} slot={SLOTS[i]} />
                 ))}
 
-                <motion.div className="slm-words" style={{ position: "relative", zIndex: 2, maxWidth: 1080, textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 48, marginTop: "-6vh" }}>
+                <motion.div className="slm-words" style={{ position: "relative", zIndex: 2, maxWidth: 1080, textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 48, marginTop: "-6vh", opacity: wordsIn }}>
                     <p
                         style={{
                             margin: 0,

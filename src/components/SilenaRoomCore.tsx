@@ -341,6 +341,9 @@ export function mount(root: HTMLElement, COPY: any, NIGHTL: string, DAYL: string
     /* look chosen by Ali (22 Oct) */
     Object.assign(LOOK_DEF,{paint:0,brush:0,canvas:.3,grain:.27,wobble:8.5,round:9.6,hiT:95,shR:62,darkN:.5,glowN:0,glowD:0,pool:.17,sunK:1.25,sofaBack:'one'});
     Object.assign(LOOK_DEF.colors,{wood:'#5f3a1c',olive:'#72813b',green:'#29655b',wallA:'#ecdac1',wallB:'#d7c7b2',floor:'#ac9777',bgN:'#322415'});
+    /* Light Rituals' walls (28 Oct): warm sand, the window wall lighter, a darker floor; less screen-wide grain, each piece has its own */
+    Object.assign(LOOK_DEF,{canvas:.1,grain:.07});
+    Object.assign(LOOK_DEF.colors,{wallA:'#DCC29C',wallB:'#EBD7B8',floor:'#C4A47C'});
     LOOK_DEF.personas.storyteller.lamp='#dc9d50';
     let look=clone(LOOK_DEF);
     const rootS=root.style;
@@ -355,6 +358,42 @@ export function mount(root: HTMLElement, COPY: any, NIGHTL: string, DAYL: string
       if(cur){rootS.setProperty('--lamp',R_[cur].lamp);rootS.setProperty('--acc',R_[cur].acc)}
       root.classList.toggle('sofa-back-one',look.sofaBack==='one')}
     applyLook();
+    /* ---------- grain per piece ----------
+       Each face gets its own texture laid in its own plane (so it follows the object, not the screen):
+       wood and the floor have long streaks, fabric a fine weave, walls a soft brushed plaster like Light
+       Rituals, everything else a fine speckle. It arrives once the room is built. */
+    (function grainify(){
+      const tile=(n,fn)=>{const c=document.createElement('canvas');c.width=c.height=n;const g=c.getContext('2d'),d=g.createImageData(n,n);
+        for(let y=0;y<n;y++)for(let x=0;x<n;x++){const v=fn(x,y),i=(y*n+x)*4,a=Math.abs(v);
+          if(v<0){d.data[i]=48;d.data[i+1]=30;d.data[i+2]=16}else{d.data[i]=255;d.data[i+1]=246;d.data[i+2]=230}d.data[i+3]=Math.min(255,a*255)}
+        g.putImageData(d,0,0);return c.toDataURL()};
+      let sd=11;const rnd=()=>((sd=(sd*16807)%2147483647)/2147483647);
+      const N=(n)=>{const a=new Float32Array(n*n);for(let i=0;i<a.length;i++)a[i]=rnd()-.5;return a};
+      const smooth=(a,n,r)=>{const o=new Float32Array(n*n);for(let y=0;y<n;y++)for(let x=0;x<n;x++){let s=0;for(let k=-r;k<=r;k++)s+=a[y*n+((x+k+n)%n)];o[y*n+x]=s/(2*r+1)}return o};
+      const n1=N(128),n2=N(160),n3=N(160),n4=N(96),n5=N(96);
+      const st=smooth(n2,160,14),st2=smooth(n3,160,4),m5=smooth(n5,96,3);
+      const T={
+        fine:tile(96,(x,y)=>n4[y*96+x]*.3+m5[y*96+x]*.5),
+        wood:tile(160,(x,y)=>st[y*160+x]*1.1+st2[y*160+x]*.45+n2[y*160+x]*.1),
+        plaster:tile(160,(x,y)=>st[y*160+x]*.55+st2[y*160+x]*.25+n3[y*160+x]*.16),
+        weave:tile(128,(x,y)=>(((x>>1)+(y>>1))%2?.09:-.09)+n1[y*128+x]*.22),
+      };
+      const SZ={fine:96,wood:160,plaster:160,weave:128};
+      const M={T:'.866 .5 -.866 .5 0 0',L:'.866 .5 0 1 0 0',R:'-.866 .5 0 1 0 0'};
+      const defs=svg.querySelector('defs');let h='';
+      Object.keys(T).forEach(t=>Object.keys(M).forEach(o=>{const z=SZ[t];
+        h+=`<pattern id="slr-g-${t}-${o}" patternUnits="userSpaceOnUse" width="${z}" height="${z}" patternTransform="matrix(${M[o]})"><image href="${T[t]}" width="${z}" height="${z}"/></pattern>`}));
+      defs.insertAdjacentHTML('beforeend',h);
+      const kind=el=>{const m=(el.getAttribute('class')||'').match(/m-(\w+)/)||((el.closest('[class*="m-"]')||{getAttribute:()=>''}).getAttribute('class')||'').match(/m-(\w+)/);const c=m&&m[1];
+        return c==='wood'||c==='walnut'||c==='slab'?'wood':c==='green'||c==='olive'?'weave':'fine'};
+      const add=(el,t,o,op)=>{const c=el.cloneNode(false);c.removeAttribute('id');c.setAttribute('class','grn');c.setAttribute('aria-hidden','true');
+        c.style.cssText=`fill:url(#slr-g-${t}-${o});stroke:none;opacity:${op}`;el.after(c)};
+      const pg=svg.querySelector('g[filter*="slr-paint"]');if(!pg)return;
+      const wA=pg.querySelector(':scope>.wA'),wB=pg.querySelector(':scope>.wB'),fl=pg.querySelector(':scope>.floor');
+      if(wA)add(wA,'plaster','R',1);if(wB)add(wB,'plaster','L',1);if(fl)add(fl,'wood','T',.8);
+      pg.querySelectorAll('.ed .fT,.ed .fL,.ed .fR').forEach(el=>{if(el.closest('#slr-lamp'))return;
+        const o=el.classList.contains('fT')?'T':el.classList.contains('fL')?'L':'R';add(el,kind(el),o,.9)});
+    })();
     /* ---------- glass touch points (HTML over the svg so they can blur what is behind) ---------- */
     const SHAPES=[['58% 42% 52% 48% / 46% 56% 44% 54%','-8deg'],['46% 54% 44% 56% / 55% 45% 57% 43%','6deg'],['52% 48% 60% 40% / 48% 58% 42% 52%','-3deg'],['44% 56% 50% 50% / 58% 44% 56% 42%','10deg']];
     const spots=$('spots');

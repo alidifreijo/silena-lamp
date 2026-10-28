@@ -46,7 +46,6 @@ export default function Nav() {
                 >
                     Silena
                 </a>
-                <span className="nav-sep" aria-hidden="true" />
                 {LINKS.map(([k, l]) => (
                     <a
                         key={k}

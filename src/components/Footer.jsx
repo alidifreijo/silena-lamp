@@ -1,7 +1,6 @@
-// The end of the page: a last quiet line, the chapters, the credits, and SILENA spread across the
-// bottom as a signature. The lamp button takes you back to the start.
+// The end of the page: a last quiet line, the chapters, the credits, and the lamp's glowing mark
+// as a signature. The lamp button takes you back to the start.
 import { useLayoutEffect, useRef } from "react"
-import Letters, { WORD_WIDTH } from "./Letters.jsx"
 
 const CHAPTERS = [
     ["feel", "Feel"],
@@ -24,18 +23,6 @@ function go(k) {
 }
 
 export default function Footer() {
-    const ref = useRef(null)
-    // SILENA as wide as the footer
-    useLayoutEffect(() => {
-        const fit = () => {
-            const el = ref.current
-            if (!el) return
-            el.style.setProperty("--foot-z", (el.clientWidth / (WORD_WIDTH + 170)).toFixed(4))
-        }
-        fit()
-        window.addEventListener("resize", fit)
-        return () => window.removeEventListener("resize", fit)
-    }, [])
     // the chapter rail steps aside once the footer is on screen
     const footRef = useRef(null)
     useLayoutEffect(() => {
@@ -89,8 +76,11 @@ export default function Footer() {
                     </p>
                 </div>
             </div>
-            <div className="foot-sign" ref={ref}>
-                <Letters as="div" className="silena-word foot-word" hidden />
+            {/* the lamp, as in the day/night switch */}
+            <div className="foot-sign" aria-hidden="true">
+                <span className="foot-mark">
+                    <i />
+                </span>
             </div>
             <div className="foot-base">
                 <span>A concept site, not affiliated with IKEA.</span>
