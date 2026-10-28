@@ -32,7 +32,7 @@ const DOWNLOADS = ["Product sheet · PDF", "Assembly guide · PDF", "3D model ·
 const SIDE = "M399.1,90.6 L401.8,75.2 L397.9,60.9 L388.1,49.9 L374.3,43.3 L360,40 L345.7,41.7 L332.5,47.7 L323.7,58.7 L319.3,75.2 L318.2,99.4 L318.2,200.6 L319.3,224.8 L323.7,241.3 L332.5,252.3 L345.7,258.4 L360,260 L374.3,256.7 L388.1,250.1 L397.9,239.1 L401.8,224.8 L399.1,209.4 Z"
 
 // the shop lamp keeps a touch of the illustration's grain and satin finish
-const REST = 0.16
+const REST = 0.3
 
 const CSS = `
 .sls{position:relative;width:100%;box-sizing:border-box;padding:120px 42px 120px;font-family:${FONT};font-weight:300}

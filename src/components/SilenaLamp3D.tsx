@@ -20,14 +20,22 @@ function buildLamp(THREE) {
     // denser at the thick rim), glossy reflections of a soft studio (two tall softboxes and a top
     // light) that get stronger at grazing angles, and a sharp glint. Lit from inside, the glow takes
     // over and the reflections soften. uPaint adds the illustration's grain and a softer, warmer tone.
-    const glass = new THREE.ShaderMaterial({
+    // three.js reports the faces of a BackSide material as front-facing, so each pass says which it is
+    const glassMat = (side, outer) => new THREE.ShaderMaterial({
         uniforms: U,
-        side: THREE.DoubleSide,
+        side,
+        defines: outer ? { OUTER: 1 } : {},
         transparent: true,
         vertexShader: `varying vec3 vN;varying vec3 vV;varying vec3 vP;void main(){vec4 mv=modelViewMatrix*vec4(position,1.);vN=normalize(normalMatrix*normal);vV=normalize(-mv.xyz);vP=position;gl_Position=projectionMatrix*mv;}`,
         fragmentShader: `uniform vec3 uTint;uniform vec3 uCore;uniform vec3 uRim;uniform float uOn;uniform float uAlpha;uniform float uPaint;uniform float uGlass;varying vec3 vN;varying vec3 vV;varying vec3 vP;
 float h(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
-void main(){vec3 N=normalize(vN),V=normalize(vV);if(!gl_FrontFacing)N=-N;float ndv=max(dot(N,V),0.);float fr=1.-ndv;
+void main(){vec3 N=normalize(vN),V=normalize(vV);
+#ifdef OUTER
+N=-N;float see=.1;
+#else
+float see=0.;
+#endif
+float ndv=max(dot(N,V),0.);float fr=1.-ndv;
 float F=.04+.96*pow(fr,5.);vec3 R=reflect(-V,N);
 float sb1=smoothstep(.2,.8,R.x)*smoothstep(-.7,.2,R.y)*(1.-smoothstep(.45,1.,R.y));
 float sb2=smoothstep(-.15,-.8,R.x)*smoothstep(-.5,.4,R.y)*(1.-smoothstep(.5,1.,R.y))*.6;
@@ -45,13 +53,20 @@ col+=vec3(1.)*pow(max(dot(R,normalize(vec3(.45,.55,.7))),0.),36.)*mix(.2,.12,uOn
 col+=vec3(1.)*pow(max(dot(R,normalize(vec3(-.6,.3,.75))),0.),18.)*.07*gl;
 float g=h(floor(gl_FragCoord.xy/(1.+2.*uPaint)));
 col=mix(col,col*vec3(1.03,.98,.9)*.94+.025,uPaint*.6);
-col+=(g-.5)*(.02+.06*uPaint);
+col+=(g-.5)*(.02+.06*uPaint+.035*uGlass);
 // translucent glass (as the SILENA letters): the faces towards you let what is behind through,
 // the thick rim stays denser, and a warm light glows from the middle
 col+=mix(uCore,vec3(1.,.55,.15),.35)*uGlass*.12*(1.-smoothstep(.1,1.,r))*(.4+.6*uOn);
-gl_FragColor=vec4(col,uAlpha*(1.-uGlass*.24*(1.-smoothstep(.2,1.,fr))));}`,
+gl_FragColor=vec4(col,uAlpha*(1.-uGlass*see*(1.-smoothstep(.2,1.,fr))));}`,
     })
+    // drawn in two passes, the inside/back first and then the faces towards you, so the
+    // see-through glass never streaks (transparent faces of one mesh are not sorted)
+    // (the lathe's faces point inwards: its "back" side is the outside of the ring)
+    const glass = glassMat(THREE.BackSide, true)
+    const shadeBack = new THREE.Mesh(geo, glassMat(THREE.FrontSide, false))
+    shadeBack.renderOrder = 0
     const shade = new THREE.Mesh(geo, glass)
+    shade.renderOrder = 1
     // the same shape as a wire drawing (profile lines and rings), for when the lamp is still "being built"
     const wv = []
     const prof = pts.filter((_, i) => i % 3 === 0).concat([pts[pts.length - 1]])
@@ -71,22 +86,36 @@ gl_FragColor=vec4(col,uAlpha*(1.-uGlass*.24*(1.-smoothstep(.2,1.,fr))));}`,
     const wire = new THREE.LineSegments(wgeo, wireM)
     wire.visible = false
     wire.renderOrder = 2
+    // a matt, softly shaded material for the hardware (back plate, cable gland, cable)
+    const matte = (rgb, k = 0.5) => new THREE.ShaderMaterial({
+        side: THREE.DoubleSide,
+        vertexShader: `varying vec3 vN;void main(){vN=normalize(normalMatrix*normal);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+        fragmentShader: `varying vec3 vN;void main(){vec3 N=normalize(vN);if(!gl_FrontFacing)N=-N;float d=max(dot(N,normalize(vec3(-.4,.7,.6))),0.);gl_FragColor=vec4(vec3(${rgb})*(${(1 - k).toFixed(2)}+${k.toFixed(2)}*d),1.);}`,
+    })
+    // the back plate: a thin white disc with a rounded edge that the glass sits on
     const base = new THREE.Mesh(
-        new THREE.LatheGeometry([[.22, .035], [.6, .035], [.64, 0], [.62, -.035], [.22, -.035], [.22, .035]].map(([r, y]) => new THREE.Vector2(r, y)), 96),
-        new THREE.MeshBasicMaterial({ color: 0xe8e4dd, side: THREE.DoubleSide })
+        new THREE.LatheGeometry([[.2, .035], [.58, .035], [.625, .02], [.645, 0], [.63, -.025], [.6, -.035], [.2, -.035], [.2, .035]].map(([r, y]) => new THREE.Vector2(r, y)), 96),
+        matte(".92,.9,.86", 0.35)
     )
     base.position.y = -0.43
-    const baseShade = new THREE.Mesh(new THREE.CylinderGeometry(0.641, 0.641, 0.02, 96, 1, true), new THREE.MeshBasicMaterial({ color: 0xbdb6ab }))
-    baseShade.position.y = -0.465
-    // the cable leaves the back plate and runs along the surface, out of frame
-    const cableCurve = new THREE.CatmullRomCurve3([[.05, -.43, .5], [.12, -.455, .66], [.22, -.47, .85], [.42, -.47, 1.25], [.46, -.47, 1.8], [.3, -.47, 2.5], [.38, -.47, 3.4], [.6, -.47, 4.6]].map((a) => new THREE.Vector3(a[0], a[1], a[2])))
-    const cableM = new THREE.ShaderMaterial({
-        vertexShader: `varying vec3 vN;void main(){vN=normalize(normalMatrix*normal);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-        fragmentShader: `varying vec3 vN;void main(){float d=max(dot(normalize(vN),normalize(vec3(-.4,.7,.6))),0.);gl_FragColor=vec4(vec3(.93,.91,.88)*(.55+.5*d),1.);}`,
-    })
-    const cable = new THREE.Mesh(new THREE.TubeGeometry(cableCurve, 160, 0.022, 12, false), cableM)
+    const baseShade = new THREE.Mesh(new THREE.CylinderGeometry(0.646, 0.646, 0.03, 96, 1, true), matte(".74,.71,.66", 0.3))
+    baseShade.position.y = -0.47
+    // where the cable comes out: a small gland at the lower edge of the plate
+    const gland = new THREE.Group()
+    const g1 = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.058, 0.13, 32), matte(".86,.84,.8", 0.45))
+    g1.rotation.x = Math.PI / 2
+    g1.position.set(0, -0.44, 0.9)
+    const g2 = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.05, 0.06, 32), matte(".8,.78,.74", 0.45))
+    g2.rotation.x = Math.PI / 2
+    g2.position.set(0, -0.44, 0.99)
+    gland.add(g1, g2)
+    // the cable leaves the gland and hangs down along the surface, out of frame
+    const cableCurve = new THREE.CatmullRomCurve3([[0, -.44, 1.0], [0, -.445, 1.08], [.02, -.46, 1.18], [.12, -.47, 1.4], [.34, -.47, 1.8], [.3, -.47, 2.5], [.38, -.47, 3.4], [.6, -.47, 4.6]].map((a) => new THREE.Vector3(a[0], a[1], a[2])))
+    const cableM = matte(".93,.91,.88", 0.45)
+    const cable = new THREE.Mesh(new THREE.TubeGeometry(cableCurve, 200, 0.022, 12, false), cableM)
+    cable.add(gland)
     const lampG = new THREE.Group()
-    lampG.add(shade, base, baseShade, cable, wire)
+    lampG.add(shadeBack, shade, base, baseShade, cable, wire)
     const tex = (stops) => {
         const c = document.createElement("canvas")
         c.width = c.height = 256
@@ -128,10 +157,9 @@ gl_FragColor=vec4(col,uAlpha*(1.-uGlass*.24*(1.-smoothstep(.2,1.,fr))));}`,
         glass(v) {
             U.uGlass.value = v
             // see-through: only the faces towards you, so the back of the ring does not streak through
-            glass.side = v > 0 ? THREE.FrontSide : THREE.DoubleSide
-            glass.needsUpdate = true
-            // the mounting plate behind would show through as a hard disc
+            // seen through the glass the back plate would read as a hard disc: only its gland stays
             base.visible = baseShade.visible = !(v > 0)
+
         },
         colors(f) {
             U.uTint.value.copy(col(f.tint))
