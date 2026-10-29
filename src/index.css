@@ -153,19 +153,29 @@ html.lenis, html.lenis body { height: auto; }
 
 /* ---------- chapter progress rail ---------- */
 .rail {
-    position: fixed; right: 18px; top: 50%; transform: translateY(-50%); z-index: 90;
-    display: flex; flex-direction: column; gap: 8px; pointer-events: none;
-    opacity: 0; transition: opacity 0.6s ease;
+    position: fixed; right: 30px; top: 50%; transform: translateY(-50%); z-index: 90;
+    display: flex; flex-direction: column; gap: 6px; pointer-events: none;
+    opacity: 0; transition: opacity 0.6s ease, visibility 0.6s;
 }
-.rail-seg { position: relative; display: flex; align-items: center; justify-content: flex-end; gap: 10px; height: 46px; }
-.rail-track { position: relative; width: 2px; height: 100%; border-radius: 2px; background: color-mix(in srgb, var(--ink) 28%, transparent); overflow: hidden; }
+.rail-seg {
+    position: relative; display: flex; align-items: center; justify-content: flex-end; gap: 10px; height: 44px;
+    padding: 0 0 0 12px; margin: 0; border: 0; background: none; cursor: pointer; pointer-events: auto; color: inherit; font: inherit;
+}
+.rail-track { position: relative; flex: none; width: 3px; height: 100%; border-radius: 3px; background: color-mix(in srgb, var(--ink) 22%, transparent); overflow: hidden; }
 .rail-fill { position: absolute; inset: 0; background: var(--ink); transform-origin: 50% 0; transform: scaleY(0); }
 .rail-n {
-    font-size: 10px; letter-spacing: 0.12em; color: var(--muted);
-    opacity: 0; transform: translateX(4px); transition: opacity 0.4s ease, transform 0.4s ease;
+    width: 16px; text-align: right; font-size: 10px; line-height: 1; letter-spacing: 0.08em; font-variant-numeric: tabular-nums;
+    color: var(--muted); opacity: 0.6; transition: opacity 0.3s ease, color 0.3s ease;
 }
-.rail-seg.on .rail-n { opacity: 1; transform: none; }
-@media (max-width: 640px) { .rail { right: 6px; gap: 6px; } .rail-seg { height: 34px; } .rail-n { display: none; } }
+.rail-seg.on .rail-n, .rail-seg:hover .rail-n { opacity: 1; color: var(--ink); }
+.rail-name {
+    position: absolute; right: 46px; top: 50%; transform: translate(6px, -50%); white-space: nowrap;
+    font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink);
+    opacity: 0; transition: opacity 0.3s ease, transform 0.3s ease; pointer-events: none;
+}
+.rail-seg:hover .rail-name, .rail-seg:focus-visible .rail-name { opacity: 1; transform: translate(0, -50%); }
+.rail-seg:focus-visible { outline: 2px solid #f0892a; outline-offset: 2px; border-radius: 6px; }
+@media (max-width: 640px) { .rail { right: 6px; gap: 4px; } .rail-seg { height: 32px; padding-left: 6px; } .rail-n, .rail-name { display: none; } }
 
 /* ---------- the lamp that leaves the hero photo ---------- */
 .hero-lamp {
@@ -264,7 +274,7 @@ body, .page, .page .process, .page .slr, .page .foot {
     .foot-sign { margin: 64px 0 28px; }
     .foot-base { flex-direction: column; }
 }
-html.in-foot .rail { opacity: 0 !important; }
+html.in-foot .rail { opacity: 0 !important; visibility: hidden !important; }
 
 /* one scroll indicator: the chapter rail (the native bar is hidden; scrolling still works everywhere) */
 html { scrollbar-width: none; }

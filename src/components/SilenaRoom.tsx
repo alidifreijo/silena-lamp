@@ -18,14 +18,16 @@ import { CSS, mount } from "./SilenaRoomCore.tsx"
 const LAYOUT =
     /* larger, airier text column */
     /* the text keeps its distance from the drawing, whatever the screen */
-    ".slr .slr-wrap{grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:clamp(56px,7vw,150px);padding:72px clamp(56px,6vw,120px) 32px}" +
+    ".slr .slr-wrap{grid-template-columns:minmax(0,480px) minmax(0,1fr);gap:clamp(56px,6vw,140px);padding:72px clamp(96px,8vw,160px) 32px clamp(56px,6vw,120px);max-width:2100px!important}" +
+    /* large screens: the question on two lines ("Who are you / at home?") */
+    "@media (min-width:1500px){.slr .slr-h{max-width:7.5em}}" +
     ".slr .slr-h{font-size:clamp(40px,4.6vw,76px);line-height:1.02;margin:0 0 32px}" +
     ".slr .lead{font-size:19px;line-height:1.6;max-width:32ch}" +
     ".slr .card .n{font-size:clamp(28px,2.6vw,38px);gap:14px;margin:0 0 16px}" +
     ".slr .card .l{font-size:19px;line-height:1.6;margin:0 0 20px;max-width:34ch}" +
     ".slr .card .r{font-size:15px;line-height:1.5}" +
     /* a bigger house; its sketch guides may run past the drawing, the section clips them */
-    ".slr{overflow:clip}.slr svg{width:100%;margin:0 auto;max-height:calc(100vh - 64px);overflow:visible;color:var(--ink)}" +
+    ".slr{overflow:clip}.slr svg{width:100%;margin:0 auto;max-height:calc(100vh - 150px);overflow:visible;color:var(--ink)}" +
     /* ...but they stop short of the text column */
     ".slr .stage{clip-path:inset(-40vh -50vw -40vh -24px)}" +
     "@media (max-width:860px){.slr .stage{clip-path:none}}" +
