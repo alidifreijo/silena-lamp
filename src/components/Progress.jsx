@@ -15,7 +15,9 @@ function go(sel) {
     const el = document.querySelector(sel)
     if (!el) return
     // Light Rituals starts under the room: land on its first mood
-    const top = window.scrollY + el.getBoundingClientRect().top + (sel === ".slx" ? window.innerHeight * 0.95 : 0)
+    // (and the room where it has finished building)
+    const H = window.innerHeight
+    const top = window.scrollY + el.getBoundingClientRect().top + (sel === ".slx" ? H * 0.95 : sel === "#place" ? H * (window.innerWidth > 860 ? 2.35 : 1.5) : 0)
     if (window.__lenis) window.__lenis.scrollTo(top, { duration: 1.6 })
     else window.scrollTo({ top, behavior: "smooth" })
 }

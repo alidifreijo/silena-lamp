@@ -35,7 +35,7 @@ const SIDE = "M399.1,90.6 L401.8,75.2 L397.9,60.9 L388.1,49.9 L374.3,43.3 L360,4
 const REST = 0.3
 
 const CSS = `
-.sls{position:relative;width:100%;box-sizing:border-box;padding:120px 42px 120px;font-family:${FONT};font-weight:300}
+.sls{position:relative;width:100%;box-sizing:border-box;padding:120px clamp(42px,6vw,96px) 120px 42px;font-family:${FONT};font-weight:300}
 .sls *{box-sizing:border-box}
 .sls-in{max-width:1360px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:64px;align-items:start}
 .sls-stage{position:sticky;top:96px;aspect-ratio:1/1;max-height:calc(100vh - 120px);width:100%;border-radius:28px;overflow:hidden;transition:background .9s}

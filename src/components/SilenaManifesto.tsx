@@ -20,11 +20,11 @@ const IMAGES = [1, 2, 3, 4, 5].map((i) => `/images/feel-${i}.jpg`)
 // scattered layout (centre x/y in %, width in vw — never smaller than min px on phones, aspect w/h, drift speed):
 // the photos drift up and pass over the words
 const SLOTS = [
-    { x: 11, y: 28, w: 16, min: 120, r: 0.75, s: 1.1 },
-    { x: 79, y: 20, w: 17, min: 130, r: 0.75, s: 0.8 },
-    { x: 24, y: 76, w: 17, min: 130, r: 1, s: 1.3 },
-    { x: 86, y: 70, w: 19, min: 140, r: 0.75, s: 1.2 },
-    { x: 58, y: 86, w: 15, min: 115, r: 0.74, s: 1.0 },
+    { x: 11, y: 28, w: 16, min: 96, r: 0.75, s: 1.1 },
+    { x: 79, y: 20, w: 17, min: 104, r: 0.75, s: 0.8 },
+    { x: 24, y: 76, w: 17, min: 100, r: 1, s: 1.3 },
+    { x: 86, y: 70, w: 19, min: 110, r: 0.75, s: 1.2 },
+    { x: 58, y: 86, w: 15, min: 92, r: 0.74, s: 1.0 },
 ]
 
 function Word({ p, start, end, children }: { p: MotionValue<number>; start: number; end: number; children: string }) {

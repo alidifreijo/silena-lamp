@@ -52,7 +52,7 @@ const LAYOUT =
     ".slr.asm #slr-anim,.slr.asm #slr-shaft,.slr.asm #slr-patch{opacity:0}" +
     /* pinned while it builds (desktop) */
     ".slr-pin{position:sticky;top:0}" +
-    "@media (max-width:860px){.slr-pin{position:relative}.slr .slr-wrap{grid-template-columns:minmax(0,1fr);padding:150px 20px 40px;gap:28px}.slr .slr-h{font-size:40px;margin-bottom:20px}.slr .lead,.slr .card .l{font-size:17px}.slr svg{width:100%}}" +
+    "@media (max-width:860px){.slr .slr-wrap{grid-template-columns:minmax(0,1fr);padding:128px 20px 24px;gap:20px;align-content:center}.slr .slr-h{font-size:40px;margin-bottom:20px}.slr .lead,.slr .card .l{font-size:17px}.slr svg{width:100%;max-height:calc(100svh - 360px)!important}}" +
     /* the eyebrow lives outside the room and sticks at the nav's height */
     ".slr .eyebrow{display:none}" +
     ".slr-eb{position:sticky;top:32px;height:0;z-index:5;pointer-events:none}" +
@@ -347,11 +347,13 @@ function assemble(host, root, pinVh, opts) {
         raf = 0
         if (finished) return
         const vh = window.innerHeight
-        const pinned = pinVh > 0 && window.innerWidth > 860
+        // pinned everywhere; on phones and tablets the pinned stretch is shorter (170vh)
+        const pv = window.innerWidth > 860 ? pinVh : 170
+        const pinned = pv > 0
         let p
         if (pinned) {
             const r = host.getBoundingClientRect()
-            p = (vh * 0.45 - r.top) / (vh * 0.45 + ((vh * pinVh) / 100) * 0.85)
+            p = (vh * 0.45 - r.top) / (vh * 0.45 + ((vh * pv) / 100) * 0.85)
         } else {
             const r = svg.getBoundingClientRect()
             p = (vh * 0.95 - r.top) / (vh * 0.8)
@@ -524,7 +526,7 @@ export default function SilenaRoom(props: Props) {
     useEffect(() => {
         const host = ref.current
         if (!host) return
-        host.innerHTML = `<style>${CSS}${LAYOUT}.slr-spacer{height:${buildScroll}vh}@media (max-width:860px){.slr-spacer{display:none}}</style>
+        host.innerHTML = `<style>${CSS}${LAYOUT}.slr-spacer{height:${buildScroll}vh}@media (max-width:860px){.slr-spacer{height:170vh}}</style>
 <div class="slr-eb" aria-hidden="true"><span>${esc(eyebrow)}</span></div>
 <div class="slr-pin">
 <div class="slr" data-mode="night">

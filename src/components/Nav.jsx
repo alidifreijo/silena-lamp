@@ -12,6 +12,8 @@ function scrollToChapter(k) {
     } else {
         const el = document.getElementById(k)
         if (el) top = window.scrollY + el.getBoundingClientRect().top
+        // the room: land where it has finished building (and its points pulse), not on empty walls
+        if (el && k === "place") top += window.innerHeight * (window.innerWidth > 860 ? 2.35 : 1.5)
     }
     if (top == null) return
     if (window.__lenis) window.__lenis.scrollTo(top, { duration: 1.6 })
