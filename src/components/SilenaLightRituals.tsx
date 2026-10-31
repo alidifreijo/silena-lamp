@@ -1003,7 +1003,7 @@ export default function SilenaLightRituals(props) {
                     vhPerState,
                     still: isCanvas,
                     // hand over from the room only where the room is pinned (wider than 860px)
-                    handoff: !isCanvas && window.innerWidth > 860 && !!document.querySelector(".slr-host"),
+                    handoff: !isCanvas && !!document.querySelector(".slr-host"),
                     copy: {
                         morning: { line: morningLine, detail: morningDetail, label: morningLabel },
                         afternoon: { line: afternoonLine, detail: afternoonDetail, label: afternoonLabel },

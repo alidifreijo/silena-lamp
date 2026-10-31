@@ -52,7 +52,7 @@ const LAYOUT =
     ".slr.asm #slr-anim,.slr.asm #slr-shaft,.slr.asm #slr-patch{opacity:0}" +
     /* pinned while it builds (desktop) */
     ".slr-pin{position:sticky;top:0}" +
-    "@media (max-width:860px){.slr .slr-wrap{grid-template-columns:minmax(0,1fr);padding:128px 20px 24px;gap:20px;align-content:center}.slr .slr-h{font-size:40px;margin-bottom:20px}.slr .lead,.slr .card .l{font-size:17px}.slr svg{width:100%;max-height:calc(100svh - 360px)!important}}" +
+    "@media (max-width:860px){.slr .slr-wrap{grid-template-columns:minmax(0,1fr);padding:128px 20px 24px;gap:20px;align-content:center}.slr .slr-h{font-size:40px;margin-bottom:20px}.slr .lead,.slr .card .l{font-size:17px}.slr .stage{margin:0 -9%}.slr svg{width:100%;max-height:calc(100svh - 300px)!important}/* phones and tablets: just the points, no names */.slr .spots .spot b{display:none!important}}" +
     /* the eyebrow lives outside the room and sticks at the nav's height */
     ".slr .eyebrow{display:none}" +
     ".slr-eb{position:sticky;top:32px;height:0;z-index:5;pointer-events:none}" +
