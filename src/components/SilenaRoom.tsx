@@ -42,6 +42,7 @@ const LAYOUT =
     /* the persona card takes the place of the intro line (no empty gap) and answers the tap straight away */
     ".slr .slr-text{display:grid;grid-template-columns:minmax(0,1fr)}" +
     ".slr .slr-h{grid-row:1}.slr .lead,.slr .card{grid-row:2;grid-column:1;align-self:start}" +
+    ".slr .slr-text{grid-template-rows:auto minmax(var(--slr-row,0px),auto)}" +
     ".slr .card{margin-top:0;transition:opacity .7s ease,transform .9s cubic-bezier(.22,.61,.36,1)}" +
     /* day/night lives only in the nav */
     ".slr .tools{display:none}" +
@@ -52,7 +53,7 @@ const LAYOUT =
     ".slr.asm #slr-anim,.slr.asm #slr-shaft,.slr.asm #slr-patch{opacity:0}" +
     /* pinned while it builds (desktop) */
     ".slr-pin{position:sticky;top:0}" +
-    "@media (max-width:860px){.slr .slr-wrap{grid-template-columns:minmax(0,1fr);padding:128px 20px 24px;gap:20px;align-content:center}.slr .slr-h{font-size:40px;margin-bottom:20px}.slr .lead,.slr .card .l{font-size:17px}.slr .stage{margin:0 -9%}.slr svg{width:100%;max-height:calc(100svh - 300px)!important}/* phones and tablets: just the points, no names */.slr .spots .spot b{display:none!important}}" +
+    "@media (max-width:860px){.slr .slr-wrap{grid-template-columns:minmax(0,1fr);padding:116px 20px 16px;gap:16px;align-content:center}.slr .slr-h{font-size:40px;margin-bottom:14px}.slr .lead,.slr .card .l{font-size:17px}.slr .stage{margin:0 -9%}.slr svg{width:100%;max-height:calc(100svh - 250px - var(--slr-row,150px))!important}/* phones and tablets: just the points, no names */.slr .spots .spot b{display:none!important}}" +
     /* the eyebrow lives outside the room and sticks at the nav's height */
     ".slr .eyebrow{display:none}" +
     ".slr-eb{position:sticky;top:32px;height:0;z-index:5;pointer-events:none}" +
@@ -586,6 +587,31 @@ export default function SilenaRoom(props: Props) {
             clearTimeout(sayT.get(b))
             sayT.set(b, setTimeout(() => b.classList.remove("say"), 2200))
         })
+        // the text keeps the room for the tallest person's card from the start, so choosing
+        // someone never pushes the drawing down (it matters on phones, where the text sits above)
+        const textBox = root.querySelector(".slr-text") as HTMLElement
+        const fitText = () => {
+            const cardEl = root.querySelector("#slr-card") as HTMLElement, leadEl = root.querySelector("#slr-lead") as HTMLElement
+            if (!cardEl || !leadEl) return
+            const probe = cardEl.cloneNode(true) as HTMLElement
+            probe.removeAttribute("id")
+            probe.querySelectorAll("[id]").forEach((e) => e.removeAttribute("id"))
+            probe.style.cssText = `position:absolute;visibility:hidden;left:0;top:0;width:${cardEl.getBoundingClientRect().width || textBox.clientWidth}px`
+            textBox.appendChild(probe)
+            let h = leadEl.getBoundingClientRect().height
+            for (const c of Object.values(COPY)) {
+                const [n, l, r] = probe.querySelectorAll("p")
+                n.lastElementChild.textContent = c.name
+                l.textContent = c.line
+                r.innerHTML = c.read
+                h = Math.max(h, probe.getBoundingClientRect().height)
+            }
+            probe.remove()
+            root.style.setProperty("--slr-row", Math.ceil(h) + "px")
+        }
+        fitText()
+        window.addEventListener("resize", fitText)
+        document.fonts?.ready.then(fitText)
         const card = root.querySelector("#slr-card")
         const cn = root.querySelector("#slr-cn")
         let mo: MutationObserver | null = null
@@ -596,6 +622,7 @@ export default function SilenaRoom(props: Props) {
             mo.observe(cn, { childList: true, characterData: true, subtree: true })
         }
         return () => {
+            window.removeEventListener("resize", fitText)
             mo?.disconnect()
             stopAsm()
             stop()
