@@ -682,7 +682,9 @@ gl_FragColor=vec4(col,uAlpha);}`,
         clone = src.cloneNode(true)
         clone.querySelectorAll("[id]").forEach((e) => e.setAttribute("data-id", e.id))
         // keep the room's own inline variables (its look and day/night blend), add the placement
-        clone.style.cssText += `;position:absolute;left:${r.left}px;top:${r.top - ritTop}px;width:${r.width}px;height:${r.height}px;margin:0;min-height:0;pointer-events:none`
+        // placed where the pinned room sits (top of the screen), not where a fast scroll (a phone's
+        // momentum) happens to have carried it by the time this runs
+        clone.style.cssText += `;position:absolute;left:${r.left}px;top:0px;width:${r.width}px;height:${r.height}px;margin:0;min-height:0;pointer-events:none`
         roomBox.innerHTML = ""
         roomBox.style.display = ""
         roomBox.appendChild(clone)
@@ -704,7 +706,7 @@ gl_FragColor=vec4(col,uAlpha);}`,
         // remember how visible each one was (some are hidden by the room's own classes)
         fade.forEach((e) => (e._o = parseFloat(getComputedStyle(e).opacity) || 0))
         // the room's corner (its P(0,0,7)) on screen, from the svg's viewBox (168 14 864 812, centred)
-        const sr = cloneSvg.getBoundingClientRect(), pr = pin.getBoundingClientRect(), k = Math.min(sr.width / 864, sr.height / 812)
+        const sr = cloneSvg.getBoundingClientRect(), pr = roomBox.getBoundingClientRect(), k = Math.min(sr.width / 864, sr.height / 812)
         const sx = sr.left - pr.left, sy = sr.top - pr.top, padX = (sr.width - 864 * k) / 2, padY = (sr.height - 812 * k) / 2
         // the whole copy is scaled (not just its drawing), so the room's blend layers keep their backdrop
         const cr = clone.getBoundingClientRect()
