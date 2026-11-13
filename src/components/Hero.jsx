@@ -27,7 +27,7 @@ export default function Hero() {
             </div>
             <div className="hero-text hero-credit">
                 <p className="label">Designed by</p>
-                <p className="body">Maria Escarmiento</p>
+                <p className="body">Sabine Marcelis</p>
             </div>
             <div className="hero-text hero-note">
                 <p className="label">2025</p>

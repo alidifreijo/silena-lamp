@@ -64,7 +64,7 @@ export default function Footer() {
                 </div>
                 <div>
                     <p className="label">The lamp</p>
-                    <p>Designed by Maria Escarmiento</p>
+                    <p>Designed by Sabine Marcelis</p>
                     <p className="foot-muted">Based on IKEA VARMBLIXT</p>
                 </div>
                 <div>
